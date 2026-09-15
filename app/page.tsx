@@ -1,5 +1,5 @@
 import { getCatalog } from "../src/index.ts";
-import { LandingFigure, LandingShell } from "./landing/landing-client.tsx";
+import { LandingFigure } from "./landing/landing-client.tsx";
 import "./landing/landing.css";
 
 const sourceURL = "https://github.com/crafter-lab/circuitkit";
@@ -17,7 +17,7 @@ export default async function Page({
   const recipes = getCatalog().recipes;
 
   return (
-    <LandingShell>
+    <div className="landing">
       <main id="main" className="landing-main landing-grid">
         <section className="landing-hero" aria-labelledby="hero-heading">
           <div className="landing-introduction">
@@ -213,15 +213,6 @@ export default async function Page({
           </p>
         </aside>
       </main>
-      <footer className="landing-footer landing-grid">
-        <span>
-          CircuitKit · By <a href="https://crafter.run">Crafter Lab</a>
-        </span>
-        <nav aria-label="Project links">
-          <a href={`${sourceURL}/blob/main/LICENSE`}>Apache-2.0</a>
-          <a href={sourceURL}>Source on GitHub ↗</a>
-        </nav>
-      </footer>
-    </LandingShell>
+    </div>
   );
 }

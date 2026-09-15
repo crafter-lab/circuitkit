@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { GalleryCase } from "./corpus.ts";
 
@@ -56,6 +57,7 @@ export default function GalleryClient({
   themes: Option[];
   initialFilters: Record<string, string>;
 }) {
+  const searchParams = useSearchParams();
   const [filters, setFilters] = useState(() => parseFilters(initialFilters, recipes, themes));
   const { group, recipe, theme, q: query } = filters;
   const recipeLabels = useMemo(
@@ -65,13 +67,22 @@ export default function GalleryClient({
   const themeLabels = useMemo(() => new Map(themes.map(({ id, title }) => [id, title])), [themes]);
   useEffect(() => {
     function restore() {
-      setFilters(
-        parseFilters(
-          Object.fromEntries(new URLSearchParams(window.location.search)),
-          recipes,
-          themes,
-        ),
+      const next = parseFilters(
+        Object.fromEntries(new URLSearchParams(window.location.search)),
+        recipes,
+        themes,
       );
+      setFilters((current) =>
+        current.group === next.group &&
+        current.recipe === next.recipe &&
+        current.theme === next.theme &&
+        current.q === next.q
+          ? current
+          : next,
+      );
+    }
+    if (searchParams?.toString() === new URLSearchParams(window.location.search).toString()) {
+      restore();
     }
     window.addEventListener("popstate", restore);
     window.addEventListener("pageshow", restore);
@@ -79,17 +90,13 @@ export default function GalleryClient({
       window.removeEventListener("popstate", restore);
       window.removeEventListener("pageshow", restore);
     };
-  }, [recipes, themes]);
+  }, [recipes, themes, searchParams]);
   function changeFilters(patch: Partial<Filters>) {
     const next = { ...filters, ...patch };
     setFilters(next);
     const url = new URL(window.location.href);
     url.search = filterParams(next).toString();
-    window.history.replaceState(
-      window.history.state,
-      "",
-      `${url.pathname}${url.search}${url.hash}`,
-    );
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
   }
   const search = query.trim().toLowerCase();
   const visible = useMemo(
