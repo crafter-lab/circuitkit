@@ -72,7 +72,7 @@ Alternatively, use the development server instead of those two commands:
 bun run dev --port 3218
 ```
 
-Wait for readiness before running browser checks in another terminal. Port 3218 is an example, not a required global setting. The three browser scripts below accept the base URL as their first argument; pass the actual server URL explicitly.
+Wait for readiness before running browser checks in another terminal. Port 3218 is an example, not a required global setting. The five browser scripts below accept the base URL as their first argument; pass the actual server URL explicitly.
 
 Browser checks are opt-in. They require a separately provisioned `agent-browser` CLI on PATH and a supported browser runtime. `bun install` for this repository does not supply that optional tool. Use an existing approved local tool setup or project-local executable; no global installation is required. The PATH prefix below exposes a project-local binary to the scripts without changing repository dependencies:
 
@@ -80,7 +80,13 @@ Browser checks are opt-in. They require a separately provisioned `agent-browser`
 PATH="$PWD/node_modules/.bin:$PATH" bun scripts/check-landing.ts http://127.0.0.1:3218
 PATH="$PWD/node_modules/.bin:$PATH" bun scripts/browser-check.ts http://127.0.0.1:3218
 PATH="$PWD/node_modules/.bin:$PATH" bun scripts/check-lesson-figure.ts http://127.0.0.1:3218
+PATH="$PWD/node_modules/.bin:$PATH" bun scripts/check-app-theme.ts http://127.0.0.1:3218
+PATH="$PWD/node_modules/.bin:$PATH" bun scripts/check-theme-regressions.ts http://127.0.0.1:3218
 ```
+
+The app-theme checker covers system preference, persisted overrides, root/background colors, shared-header identity, all-route navigation, reloads, 404 recovery, viewport containment and document-theme isolation. Set `CIRCUITKIT_THEME_ARTIFACTS` to choose a different output directory. Native macOS rubber-band scrolling is not faithfully reproduced by headless Chromium; resized viewports are not physical-device certification. The script records coarse-pointer emulation limitations and axe incomplete checks instead of treating them as passes.
+
+The focused theme-regression checker verifies filter synchronization after both direct and locally edited gallery URLs, rapid typing, browser Back, invalid editor drafts, and document-aware keyboard focus when site and SVG themes differ.
 
 The editor checker opens `/editor` and compares actual SVG paths/glyph bounds with core, exercises document/value/theme/focus controls and failures, and inspects standalone exports. Clipboard cases are injected and download Blob bytes are observed; this does not prove that every browser successfully saves a user-selected file. The lesson checker exercises `/lesson`, independent annotated figures, selection previews and exported figure behavior. Both generate local evidence under `artifacts/` rather than relying on files shipped in the source repository.
 
