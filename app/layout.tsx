@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
+import { SiteFooter } from "./site-footer.tsx";
+import { SiteHeader } from "./site-header.tsx";
+import { AppThemeProvider } from "./theme-provider.tsx";
 import "./globals.css";
 
 const geist = localFont({
@@ -22,8 +25,19 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${geist.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${geist.variable} ${geistMono.variable}`} suppressHydrationWarning>
+      <body>
+        <AppThemeProvider>
+          <div className="app-shell">
+            <a className="skip-link" href="#main">
+              Skip to content
+            </a>
+            <SiteHeader />
+            <div className="app-content">{children}</div>
+            <SiteFooter />
+          </div>
+        </AppThemeProvider>
+      </body>
     </html>
   );
 }

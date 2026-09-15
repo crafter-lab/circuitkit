@@ -230,7 +230,7 @@ describe("gallery pages", () => {
     );
     expect(html).toContain(result.svg);
     expect(html).toContain(`/editor?case=${encodeURIComponent(id)}#main`);
-    expect(html).toContain('href="/editor">Editor</a>');
+    expect(html).toContain("Open in editor");
     expect(html).toContain(`/gallery/figure?case=${encodeURIComponent(id)}&amp;download=1`);
     expect(html).toContain("/gallery?group=examples&amp;q=audio#collection-heading");
     expect(html).toContain("Previous example");
@@ -371,12 +371,12 @@ describe("gallery editor handoff", () => {
     },
   );
 
-  test("editor with no case retains the ready default and gallery navigation", async () => {
+  test("editor with no case retains the ready default and public contract", async () => {
     const html = renderToStaticMarkup(await EditorPage());
     expect(html).toContain("Circuits, made legible.");
     expect(html).toContain("Ready to export");
-    expect(html).toContain('href="/gallery"');
-    expect(html).toContain('href="/editor" aria-current="page"');
+    expect(html).toContain("Document JSON schema");
+    expect(html).toContain("Recipes, pins &amp; SI parameters");
     expect(html).not.toContain("Editing a local copy of");
   });
 

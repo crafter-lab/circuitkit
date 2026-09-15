@@ -17,7 +17,7 @@ The design uses the existing Next.js/React stack, native anchors/buttons, and lo
 
 A compact masthead links CircuitKit, Crafter Lab, editor, gallery, and lesson. The main introduction pairs “Open editor” with “Explore gallery” at the same 32px desktop control height. Supporting text explains the tool before showing a real annotated voltage divider, not a mock drawing or dashboard.
 
-The hero reuses `dividerLesson` unchanged and `CircuitLessonFigure` directly. That shared component owns hit testing, transient hover/focus previews, Escape/Show all, accessible legend associations, and SVG downloads. The landing only owns the selected net and theme. There are no duplicate wires or annotation interaction implementations. Selection stays intact when the theme changes; exports use saved selection rather than transient previews.
+The hero reuses `dividerLesson` unchanged and `CircuitLessonFigure` directly. That shared component owns hit testing, transient hover/focus previews, Escape/Show all, accessible legend associations, and SVG downloads. `LandingFigure` owns the selected net and reads the global site theme through `useSiteTheme()`, mapping it to the existing `geist-light`/`geist-dark` document presets. There are no duplicate wires or annotation interaction implementations. Selection stays intact when the theme changes; exports use saved selection rather than transient previews.
 
 Three concise value propositions cover electrical nodes, portable SVG, and the local author/agent contract. The topology count and links are derived from `getCatalog().recipes`, currently nine. Gallery/stress/test counts are deliberately absent. The code example uses the actual core API and handles both success and diagnostics.
 
@@ -27,9 +27,11 @@ The footer includes Apache-2.0 and source links. The limitation statement exclud
 
 ## Theme, layout, and accessibility
 
-All new styles and light/dark tokens are scoped under `.landing` in `app/landing/landing.css`. Existing global styles, editor controls, lesson UI, gallery, and renderer palettes remain unchanged. The embedded figure follows its existing `geist-light`/`geist-dark` theme and native button styling; only its coarse-pointer button height receives a landing-scoped increase. This keeps the shared renderer presentation intact without fighting its inline styles.
+The shared-layout architecture moves site light/dark tokens into `app/globals.css` and applies the Crafter visual language across landing, editor, gallery, detail, and lesson. The `html` and `body` backgrounds use the same global token, including the dark root class, so the document canvas is themed rather than only the landing wrapper. `app/landing/landing.css` retains landing-specific composition, not a separate theme boundary. Renderer SVG colors and authored figure documents remain independent of site chrome; the site toggle must not rewrite editor JSON, gallery preset filters, detail SVG, or downloads. Lesson figure-theme controls remain document controls.
 
-Light is the fixed server and first-client-render default. The native “Dark theme” toggle uses `aria-pressed` and changes local React state only after user input. There is no local-storage read, mount-time theme effect, or system-theme race. Theme preference is intentionally not persisted across page visits. Syntax tokens use the registry's separate light/dark colors.
+`RootLayout` owns `AppThemeProvider`, one skip link targeting `#main`, `SiteHeader`, route content, and `SiteFooter`. Each page remains a Server Component with exactly one `main#main` and no local site header, footer, or skip link. The root landing uses a plain `.landing` wrapper instead of `LandingShell`. Editor delegation remains a conditional async import only when the root receives a `case` parameter.
+
+`AppThemeProvider` uses `next-themes` with `attribute="class"`, system-theme support, color-scheme handling, and the `circuitkit-theme` storage key. Its initialization script precedes content and resolves the HTML theme class. `useSiteTheme()` uses a `useSyncExternalStore` mounted guard: SSR and the first hydration render expose light with `mounted: false`, independently of the HTML class initialized by the script. The shared “Dark theme” button is initially disabled with `aria-pressed="false"`; after mounting it reflects the resolved theme and allows persistent user selection. Browser persistence, navigation, hydration, and overscroll behavior require browser verification, not just static SSR assertions.
 
 The header, content, and footer share one alignment grid. Groups use 4–8px, related content 12–16px, and sections 24–32px spacing. Borders are fine, corners square, and surfaces have no elevation. Keyboard focus uses one outline. Desktop main actions are 32px; coarse-pointer controls expand to 44px. Small screens stack the hero, values, topology list, and code sections. Code and the shared diagram scroll inside their own containers rather than widening the page.
 
@@ -42,11 +44,13 @@ The header, content, and footer share one alignment grid. Groups use 4–8px, re
 - Unknown, empty, or repeated `case` values still produce the editor's 404 instead of silently displaying a default figure.
 - App wordmarks return to `/`; all Editor navigation points to `/editor`.
 
-All editor, gallery, detail, lesson, root metadata, headers, and footers use CircuitKit. The old local-only MVP copy is removed without redesigning those screens.
+All routes use the same CircuitKit masthead and footer through the root layout. Page-specific headings, editor schema/catalog/playground controls, full-corpus gallery ordering and filters, detail connectivity and exports, and the two independent lesson figures remain page content. Site styling changes do not alter those data or interaction contracts.
 
 ## Verification scope
 
-The landing implementation recorded these focused checks on 2026-09-15. This is a dated implementation result, not a new run performed for this documentation update:
+`tests/site-shell.test.tsx` composes the real `AppThemeProvider`, `SiteHeader`, page content, and `SiteFooter` for SSR without mocking Next.js navigation or links. It checks one content main per page, shared branding/navigation, deterministic pre-mount theme controls, the unchanged light hero SVG, dark authored detail bytes and JSON, gallery preset filters, and editor/lesson content. Root layout wiring is inspected as source to avoid importing the `next/font/local` build macro; CSS assertions cover the root/background token contract, not computed browser appearance. Existing landing and gallery-route tests retain legacy/canonical editor parity, 404s, corpus ordering, filters, exports, and renderer-byte checks. No SVG snapshots or the 27 immutable pre-annotation hashes are regenerated.
+
+The following results belong to the earlier landing implementation on 2026-09-15, before the shared-layout theme migration. They are historical evidence, not verification of the current global provider, persistence, all-route styling, or overscroll behavior:
 
 ```sh
 bun run typecheck --incremental false

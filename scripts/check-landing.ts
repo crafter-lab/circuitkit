@@ -7,14 +7,22 @@ import { renderFigureSVG } from "../src/index.ts";
 const base = process.argv[2] ?? "http://127.0.0.1:3218";
 const identity = spawnSync(
   "agent-browser",
-  ["session", "id", "--scope", "worktree", "--prefix", "circuitkit-landing"],
+  [
+    "session",
+    "id",
+    "--scope",
+    "worktree",
+    "--prefix",
+    process.env.CIRCUITKIT_BROWSER_PREFIX ?? "circuitkit-landing",
+  ],
   { encoding: "utf8" },
 );
 assert.equal(identity.status, 0, identity.stderr);
 const session = identity.stdout.trim();
 const checks: string[] = [];
 const audits: unknown[] = [];
-mkdirSync("artifacts/landing", { recursive: true });
+const output = process.env.CIRCUITKIT_LANDING_ARTIFACTS ?? "artifacts/landing";
+mkdirSync(output, { recursive: true });
 function run(args: string[], input?: string) {
   const result = spawnSync("agent-browser", ["--session", session, "--json", ...args], {
     input,
@@ -41,6 +49,20 @@ const description = () =>
   evaluate<string>("document.querySelector('.circuit-lesson-figure svg desc').textContent");
 try {
   browser("open", base);
+  browser("wait", '.landing-preview[data-theme-ready="true"]');
+  browser("wait", ".site-header .theme-toggle:not(:disabled)");
+  if (evaluate<boolean>("document.documentElement.classList.contains('dark')")) {
+    browser("click", ".site-header .theme-toggle");
+  } else {
+    browser("click", ".site-header .theme-toggle");
+    browser("wait", "--fn", "document.documentElement.classList.contains('dark')");
+    browser("click", ".site-header .theme-toggle");
+  }
+  browser("wait", "--fn", "document.documentElement.classList.contains('light')");
+  check(
+    "mounted global theme initialized to explicit known light through UI",
+    evaluate<boolean>("localStorage.getItem('circuitkit-theme')==='light'"),
+  );
   browser("wait", ".circuit-lesson-legend");
   browser("snapshot", "-i");
   browser("set", "viewport", "1440", "1000");
@@ -69,9 +91,10 @@ try {
   browser("hover", "h1");
   check("pointer leave restores B", description().includes("Focus nets: output."));
   browser("find", "role", "button", "click", "--name", "Dark theme");
+  browser("wait", "--fn", "document.documentElement.classList.contains('dark')");
   check(
     "dark theme retains the selected net",
-    evaluate<boolean>("document.querySelector('.landing').dataset.theme==='dark'") &&
+    evaluate<boolean>("document.documentElement.classList.contains('dark')") &&
       pressed().join() === "B" &&
       description().includes("Focus nets: output."),
   );
@@ -105,11 +128,16 @@ try {
   const expected = renderFigureSVG(document);
   assert(expected.ok);
   check("export matches core bytes with saved B, not hover A", exported === expected.svg);
-  await Bun.write("artifacts/landing/figure.svg", exported);
+  if (process.env.CIRCUITKIT_LANDING_ARTIFACTS) {
+    await Bun.write(`${output}/figure.json`, JSON.stringify({ svg: exported }, null, 2));
+  } else {
+    await Bun.write(`${output}/figure.svg`, exported);
+  }
   browser("hover", "h1");
   for (const theme of ["dark", "light"]) {
-    if (evaluate<string>("document.querySelector('.landing').dataset.theme") !== theme) {
+    if (!evaluate<boolean>(`document.documentElement.classList.contains('${theme}')`)) {
       browser("find", "role", "button", "click", "--name", "Dark theme");
+      browser("wait", "--fn", `document.documentElement.classList.contains('${theme}')`);
     }
     for (const width of [1440, 768, 390, 320]) {
       browser("set", "viewport", String(width), "1000");
@@ -117,7 +145,7 @@ try {
         `${theme} ${width}px contains page overflow`,
         evaluate<boolean>("document.documentElement.scrollWidth<=innerWidth"),
       );
-      browser("screenshot", `artifacts/landing/${theme}-${width}.png`, "--full");
+      browser("screenshot", `${output}/${theme}-${width}.png`, "--full");
     }
     const audit = browser("a11y");
     audits.push({ theme, ...audit });
@@ -138,8 +166,10 @@ try {
   browser("click", 'nav a[href="/gallery"]');
   browser("wait", 'a[href^="/gallery/view?case="]');
   browser("snapshot", "-i");
+  browser("scrollintoview", 'a[href^="/gallery/view?case="]');
   browser("find", "first", 'a[href^="/gallery/view?case="]', "click");
   browser("wait", 'a[href^="/editor?case="]');
+  browser("scrollintoview", 'a[href^="/editor?case="]');
   browser("find", "first", 'a[href^="/editor?case="]', "click");
   browser("wait", ".workbench");
   const query = evaluate<string>("location.search");
@@ -164,7 +194,7 @@ try {
   const errors = browser("errors");
   check("browser reports no uncaught page exceptions", errors.errors.length === 0);
   await Bun.write(
-    "artifacts/landing/browser-check.json",
+    `${output}/browser-check.json`,
     JSON.stringify(
       {
         ok: true,

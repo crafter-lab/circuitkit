@@ -64,53 +64,32 @@ export default async function GalleryPage({
     ]),
   );
   return (
-    <>
-      <a className="skip-link" href="#main">
-        Skip to gallery
-      </a>
-      <header className="site-header">
-        <a className="wordmark" href="/">
-          CircuitKit<span className="edition">Gallery</span>
-        </a>
-        <nav className="gallery-nav" aria-label="Main navigation">
-          <a href="/editor">Editor</a>
-          <a href="/gallery" aria-current="page">
-            Gallery
-          </a>
-          <a href="/lesson">Lesson</a>
-        </nav>
-      </header>
-      <main id="main" className="gallery-main">
-        <div className="intro gallery-intro">
-          <span className="eyebrow">The local collection / {cards.length} cases</span>
-          <h1>Different topologies. Clear connections.</h1>
-          <p>
-            Explore branching networks, bridges, transistor stages, and feedback loops. Distinct
-            circuit graphs first, then their values, themes, and focus variants. Drawing, not
-            simulation.
-          </p>
-          <div className="gallery-intro-meta">
-            <span>{new Set(cards.map((card) => card.recipe)).size} distinct topologies</span>
-            <span>
-              {new Set(cards.filter((card) => card.complex).map((card) => card.recipe)).size}{" "}
-              complex circuit families
-            </span>
-            <span>{new Set(cards.map((card) => card.preset)).size} themes</span>
-            <span>Real renderer output</span>
-          </div>
+    <main id="main" className="gallery-main">
+      <div className="intro gallery-intro">
+        <span className="eyebrow">The local collection / {cards.length} cases</span>
+        <h1>Different topologies. Clear connections.</h1>
+        <p>
+          Explore branching networks, bridges, transistor stages, and feedback loops. Distinct
+          circuit graphs first, then their values, themes, and focus variants. Drawing, not
+          simulation.
+        </p>
+        <div className="gallery-intro-meta">
+          <span>{new Set(cards.map((card) => card.recipe)).size} distinct topologies</span>
+          <span>
+            {new Set(cards.filter((card) => card.complex).map((card) => card.recipe)).size} complex
+            circuit families
+          </span>
+          <span>{new Set(cards.map((card) => card.preset)).size} themes</span>
+          <span>Real renderer output</span>
         </div>
-        <StressPanel />
-        <GalleryClient
-          cards={cards}
-          recipes={recipes}
-          themes={catalog.themes.presets.map((id) => ({ id, title: id.replace("geist-", "") }))}
-          initialFilters={initialFilters}
-        />
-      </main>
-      <footer className="site-footer">
-        <span>CircuitKit · Circuit gallery</span>
-        <p>A drawing tool, not simulation, electrical-safety approval, or a fabrication system.</p>
-      </footer>
-    </>
+      </div>
+      <StressPanel />
+      <GalleryClient
+        cards={cards}
+        recipes={recipes}
+        themes={catalog.themes.presets.map((id) => ({ id, title: id.replace("geist-", "") }))}
+        initialFilters={initialFilters}
+      />
+    </main>
   );
 }

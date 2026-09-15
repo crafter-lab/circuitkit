@@ -2,10 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup, renderToString } from "react-dom/server";
 import EditorPage from "../app/editor/page.tsx";
 import { getGalleryCase } from "../app/gallery/corpus.ts";
-import GalleryPage from "../app/gallery/page.tsx";
-import FigurePage from "../app/gallery/view/page.tsx";
 import { dividerLesson } from "../app/lesson/documents.ts";
-import LessonPage from "../app/lesson/page.tsx";
 import Page from "../app/page.tsx";
 import { getCatalog, loadExample, renderSVG } from "../src/index.ts";
 
@@ -26,9 +23,7 @@ describe("CircuitKit landing", () => {
     expect(html).toContain('href="/editor">Open editor</a>');
     expect(html).toContain('href="/gallery">Explore gallery</a>');
     expect(html).toContain('href="/lesson">Learn to read the nodes');
-    expect(html).toContain('href="https://crafter.run"');
-    expect(html).toContain(`href="${sourceURL}"`);
-    expect(html).toContain(`href="${sourceURL}/blob/main/LICENSE">Apache-2.0</a>`);
+    expect(html).toContain(`href="${sourceURL}#readme"`);
     expect(html).toContain("CircuitKit is not published to npm.");
     const text = html.replace(/<[^>]+>/g, "");
     expect(text).toContain(`git clone ${sourceURL}\ncd circuitkit\nbun install\nbun run build`);
@@ -75,13 +70,12 @@ describe("CircuitKit landing", () => {
     expect(JSON.stringify(document)).toBe(before);
   });
 
-  test("initial light SSR is deterministic with accessible theme and figure controls", async () => {
+  test("initial light page SSR is deterministic with accessible figure controls", async () => {
     const page = await Page();
     const html = renderToString(page, { identifierPrefix: "landing-test-" });
     expect(renderToString(page, { identifierPrefix: "landing-test-" })).toBe(html);
-    expect(html).toContain('class="landing" data-theme="light"');
-    expect(html).toContain('aria-label="Dark theme" aria-pressed="false"');
-    expect(html).toContain('href="#main">Skip to content</a>');
+    expect(html).toContain('<div class="landing"><main id="main"');
+    expect(html).not.toContain("data-theme=");
     expect(html).toContain('id="main"');
     expect(html).toContain('tabindex="0" aria-label="Render a circuit with the CircuitKit core"');
     expect(html).toContain('tabindex="0" aria-label="Build CircuitKit from source"');
@@ -130,7 +124,7 @@ describe("landing and editor route compatibility", () => {
       expect(legacy).toBe(editor);
       expect(legacy).toContain("Editing a local copy of");
       expect(legacy).toContain(`/gallery/view?case=${encodeURIComponent(id)}`);
-      expect(legacy).toContain('href="/editor" aria-current="page"');
+      expect(legacy.match(/<main\b[^>]*\bid="main"/g)).toHaveLength(1);
       expect(legacy).not.toContain('class="landing"');
       expect(JSON.stringify(entry.document)).toBe(before);
     },
@@ -148,24 +142,4 @@ describe("landing and editor route compatibility", () => {
       );
     },
   );
-
-  test("all app headers use CircuitKit and point Editor at the dedicated route", async () => {
-    const pages = [
-      await EditorPage(),
-      await GalleryPage({ searchParams: Promise.resolve({ q: "no-matching-case" }) }),
-      await FigurePage({
-        searchParams: Promise.resolve({ case: "rc-lowpass/audio-low/geist-light" }),
-      }),
-      LessonPage(),
-    ];
-    for (const page of pages) {
-      const html = renderToStaticMarkup(page);
-      expect(html).toContain('class="wordmark" href="/">CircuitKit');
-      expect(html).toMatch(/href="\/editor"(?: aria-current="page")?>Editor<\/a>/);
-      expect(html).not.toContain('href="/">Editor</a>');
-      expect(html).not.toContain("Circuit Figures");
-      expect(html).not.toContain("Local-only MVP");
-      expect(html).not.toContain("UNLICENSED");
-    }
-  });
 });
