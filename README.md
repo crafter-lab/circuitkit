@@ -12,6 +12,10 @@
   <a href="https://github.com/crafter-lab/circuitkit/blob/main/LICENSE">
     <img src="https://img.shields.io/github/license/crafter-lab/circuitkit" alt="Apache-2.0 license" />
   </a>
+  &nbsp;
+  <a href="https://circuitkit.vercel.app">
+    <img src="https://img.shields.io/badge/demo-live-141414" alt="Live demo" />
+  </a>
 </p>
 
 <p align="center">

@@ -8,7 +8,7 @@
     "url": "https://github.com/crafter-lab/circuitkit.git"
   },
   "bugs": "https://github.com/crafter-lab/circuitkit/issues",
-  "homepage": "https://github.com/crafter-lab/circuitkit#readme",
+  "homepage": "https://circuitkit.vercel.app",
   "type": "module",
   "license": "Apache-2.0",
   "exports": {
