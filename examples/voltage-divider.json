@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "R1": { "type": "resistor", "resistance": 10000 },
+      "R2": { "type": "resistor", "resistance": 10000 }
+    },
+    "ports": {
+      "VIN": { "kind": "terminal" },
+      "VOUT": { "kind": "terminal" },
+      "GND": { "kind": "ground" }
+    },
+    "nets": {
+      "input": ["VIN", "R1.a"],
+      "output": ["R1.b", "R2.a", "VOUT"],
+      "ground": ["R2.b", "GND"]
+    }
+  },
+  "layout": {
+    "preset": "voltage-divider",
+    "roles": { "top": "R1", "bottom": "R2", "input": "VIN", "output": "VOUT", "ground": "GND" }
+  },
+  "presentation": {
+    "title": "Divisor de tensión",
+    "theme": { "preset": "geist-light" },
+    "highlight": { "components": [], "nets": [] }
+  }
+}

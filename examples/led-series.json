@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "V1": { "type": "dc-source", "voltage": 5 },
+      "R1": { "type": "resistor", "resistance": 330 },
+      "D1": { "type": "led" }
+    },
+    "ports": { "GND": { "kind": "ground" } },
+    "nets": {
+      "supply": ["V1.positive", "R1.a"],
+      "series": ["R1.b", "D1.anode"],
+      "ground": ["D1.cathode", "V1.negative", "GND"]
+    }
+  },
+  "layout": {
+    "preset": "led-series",
+    "roles": { "supply": "V1", "resistor": "R1", "led": "D1", "ground": "GND" }
+  },
+  "presentation": {
+    "title": "LED en serie",
+    "theme": { "preset": "geist-light" },
+    "highlight": { "components": [], "nets": [] }
+  }
+}

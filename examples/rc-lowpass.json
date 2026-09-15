@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "R1": { "type": "resistor", "resistance": 10000 },
+      "C1": { "type": "capacitor", "capacitance": 1e-7 }
+    },
+    "ports": {
+      "VIN": { "kind": "terminal" },
+      "VOUT": { "kind": "terminal" },
+      "GND": { "kind": "ground" }
+    },
+    "nets": {
+      "input": ["VIN", "R1.a"],
+      "output": ["R1.b", "C1.a", "VOUT"],
+      "ground": ["C1.b", "GND"]
+    }
+  },
+  "layout": {
+    "preset": "rc-lowpass",
+    "roles": { "series": "R1", "shunt": "C1", "input": "VIN", "output": "VOUT", "ground": "GND" }
+  },
+  "presentation": {
+    "title": "Filtro RC",
+    "theme": { "preset": "geist-light" },
+    "highlight": { "components": [], "nets": ["output"] }
+  }
+}

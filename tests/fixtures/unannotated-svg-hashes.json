@@ -1,0 +1,137 @@
+[
+  {
+    "recipe": "rc-lowpass",
+    "preset": "geist-light",
+    "sha256": "fd0b59b7b464741e0d1ca7706fa856e8e07394fa532a0bcd2f27e9edb8426965"
+  },
+  {
+    "recipe": "rc-lowpass",
+    "preset": "geist-dark",
+    "sha256": "23dfb2938720066fad931592baab488a348408ef8934b03b2cd54a17dbcabbff"
+  },
+  {
+    "recipe": "rc-lowpass",
+    "preset": "geist-print",
+    "sha256": "b711311cea4d7ef49379e06585c1335046d4f0a297bd2ef935d507f39c6e552f"
+  },
+  {
+    "recipe": "voltage-divider",
+    "preset": "geist-light",
+    "sha256": "1e49d1fa508952e4e21d2b37440fd9c455b2b66fa8791b571e9d4fd5a4cbe365"
+  },
+  {
+    "recipe": "voltage-divider",
+    "preset": "geist-dark",
+    "sha256": "c554950e7a8381c98938ab5de70b3b908a88231f2795c491b781fc8099143783"
+  },
+  {
+    "recipe": "voltage-divider",
+    "preset": "geist-print",
+    "sha256": "53a7e4e7bf43c930aa4c5828241737dd135113a8751c7d714eb472bb347da6ee"
+  },
+  {
+    "recipe": "led-series",
+    "preset": "geist-light",
+    "sha256": "bf023cef97e0b3077efa0967b55eea22d649bf4d6500174343a891de452dbbca"
+  },
+  {
+    "recipe": "led-series",
+    "preset": "geist-dark",
+    "sha256": "41ad762e06ec9d1757db43d51d71d9c41783b767926e02b302ec414a10f48976"
+  },
+  {
+    "recipe": "led-series",
+    "preset": "geist-print",
+    "sha256": "59587a06d66fd69d624b7dfd5efa5bc82aa6c383f3789f01533f01e31f8eab1c"
+  },
+  {
+    "recipe": "loaded-divider",
+    "preset": "geist-light",
+    "sha256": "1105b3959cedab32d932ce4aeefd3eef497c5d02952371617aa3f5360f69be90"
+  },
+  {
+    "recipe": "loaded-divider",
+    "preset": "geist-dark",
+    "sha256": "cb516d635ec0c777842cd33cc12b738e01a134161c2bc846dad95e016d19a7bd"
+  },
+  {
+    "recipe": "loaded-divider",
+    "preset": "geist-print",
+    "sha256": "d8635e8a31ae5a5841c1420bdbf3a211617651dc799b738ec8033a7c7f56d210"
+  },
+  {
+    "recipe": "rc-ladder",
+    "preset": "geist-light",
+    "sha256": "9ab7e5596198761719c445ca2d49f72d7f42e9d25ba898f4c787ccc04a2c3fc9"
+  },
+  {
+    "recipe": "rc-ladder",
+    "preset": "geist-dark",
+    "sha256": "52db5972f1141908a089d8aa65931301d30e8be8ae2295197d8c514c50ace94e"
+  },
+  {
+    "recipe": "rc-ladder",
+    "preset": "geist-print",
+    "sha256": "7f2887f35c518d96a11719452e770ad272c33b21d7fd6a62eedcee11c8d95ee7"
+  },
+  {
+    "recipe": "wheatstone-bridge",
+    "preset": "geist-light",
+    "sha256": "23afafa3d6991871c7e74c9ff181139b74660688d1b516eed930a91fa1123ee6"
+  },
+  {
+    "recipe": "wheatstone-bridge",
+    "preset": "geist-dark",
+    "sha256": "7842c69e08d91db17f4044f62fc6b42ef1fa8f180b93a4f68dfbd304d9d40155"
+  },
+  {
+    "recipe": "wheatstone-bridge",
+    "preset": "geist-print",
+    "sha256": "47e14a35ae0cbaaf1f9f0661d6683a70497dae49f8de80b9eac53320b7c1dd13"
+  },
+  {
+    "recipe": "bridge-rectifier",
+    "preset": "geist-light",
+    "sha256": "19e3b9f23501ecbf4fd2c21d356a3a06320af99e673b2362997d132353eb9888"
+  },
+  {
+    "recipe": "bridge-rectifier",
+    "preset": "geist-dark",
+    "sha256": "ec3f0bd06be56066a5af362e9878d5028d5862c3224dce60fc87931210dfb67a"
+  },
+  {
+    "recipe": "bridge-rectifier",
+    "preset": "geist-print",
+    "sha256": "0b92eb0baaf682ec6fdfad79e64dbd6fc3e4c3baf455a56944e3f94eef204ca8"
+  },
+  {
+    "recipe": "transistor-switch",
+    "preset": "geist-light",
+    "sha256": "66a7a14d3be38d060a0d143637f77860efc00cfcf4f9404993d46e07206abb5c"
+  },
+  {
+    "recipe": "transistor-switch",
+    "preset": "geist-dark",
+    "sha256": "323fe71dbe7d2c9bc428f9a6b8fb7627550bdc7d1f43f9d2a42f184fb6fa9b93"
+  },
+  {
+    "recipe": "transistor-switch",
+    "preset": "geist-print",
+    "sha256": "9311608f5c87f730edd550ba75195a83525414abb3313f37d842d2ca0356a850"
+  },
+  {
+    "recipe": "inverting-amplifier",
+    "preset": "geist-light",
+    "sha256": "341c3bed03b4ac9598e072d7f8d8c57961cd362317ce9217f7ba98a26369d49c"
+  },
+  {
+    "recipe": "inverting-amplifier",
+    "preset": "geist-dark",
+    "sha256": "f0014ae40ecd5042d39056eab3566f2fa53632369939e71dbc618f43d27d3836"
+  },
+  {
+    "recipe": "inverting-amplifier",
+    "preset": "geist-print",
+    "sha256": "dfdbf39ea8c0d6687b75613affa23a3e17c9a9f8d83e0a576647b20f0a2945a5"
+  }
+]

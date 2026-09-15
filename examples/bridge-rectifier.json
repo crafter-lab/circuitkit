@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "D1": {
+        "type": "diode"
+      },
+      "D2": {
+        "type": "diode"
+      },
+      "D3": {
+        "type": "diode"
+      },
+      "D4": {
+        "type": "diode"
+      },
+      "RL": {
+        "type": "resistor",
+        "resistance": 1000
+      },
+      "C1": {
+        "type": "capacitor",
+        "capacitance": 0.001
+      }
+    },
+    "ports": {
+      "A": {
+        "kind": "terminal"
+      },
+      "B": {
+        "kind": "terminal"
+      },
+      "VDC": {
+        "kind": "terminal"
+      },
+      "GND": {
+        "kind": "ground"
+      }
+    },
+    "nets": {
+      "ac_a": ["A", "D1.anode", "D3.cathode"],
+      "ac_b": ["B", "D2.anode", "D4.cathode"],
+      "dc_positive": ["D1.cathode", "D2.cathode", "RL.a", "C1.a", "VDC"],
+      "ground": ["D3.anode", "D4.anode", "RL.b", "C1.b", "GND"]
+    }
+  },
+  "layout": {
+    "preset": "bridge-rectifier",
+    "roles": {
+      "positiveA": "D1",
+      "positiveB": "D2",
+      "negativeA": "D3",
+      "negativeB": "D4",
+      "load": "RL",
+      "filter": "C1",
+      "inputA": "A",
+      "inputB": "B",
+      "output": "VDC",
+      "ground": "GND"
+    }
+  },
+  "presentation": {
+    "title": "Full-wave bridge rectifier",
+    "theme": {
+      "preset": "geist-light"
+    }
+  }
+}

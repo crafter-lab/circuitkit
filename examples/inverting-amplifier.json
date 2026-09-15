@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "RIN": {
+        "type": "resistor",
+        "resistance": 10000
+      },
+      "RF": {
+        "type": "resistor",
+        "resistance": 100000
+      },
+      "U1": {
+        "type": "op-amp"
+      }
+    },
+    "ports": {
+      "VIN": {
+        "kind": "terminal"
+      },
+      "VOUT": {
+        "kind": "terminal"
+      },
+      "VPLUS": {
+        "kind": "terminal"
+      },
+      "VMINUS": {
+        "kind": "terminal"
+      },
+      "GND": {
+        "kind": "ground"
+      }
+    },
+    "nets": {
+      "input": ["VIN", "RIN.a"],
+      "summing": ["RIN.b", "RF.a", "U1.inverting"],
+      "output": ["U1.output", "RF.b", "VOUT"],
+      "ground": ["U1.noninverting", "GND"],
+      "positive_supply": ["U1.vplus", "VPLUS"],
+      "negative_supply": ["U1.vminus", "VMINUS"]
+    }
+  },
+  "layout": {
+    "preset": "inverting-amplifier",
+    "roles": {
+      "inputResistor": "RIN",
+      "feedback": "RF",
+      "amplifier": "U1",
+      "input": "VIN",
+      "output": "VOUT",
+      "positiveSupply": "VPLUS",
+      "negativeSupply": "VMINUS",
+      "ground": "GND"
+    }
+  },
+  "presentation": {
+    "title": "Inverting operational amplifier",
+    "theme": {
+      "preset": "geist-light"
+    }
+  }
+}

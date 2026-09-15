@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "R1": {
+        "type": "resistor",
+        "resistance": 10000
+      },
+      "R2": {
+        "type": "resistor",
+        "resistance": 10000
+      },
+      "RL": {
+        "type": "resistor",
+        "resistance": 10000
+      }
+    },
+    "ports": {
+      "VIN": {
+        "kind": "terminal"
+      },
+      "VOUT": {
+        "kind": "terminal"
+      },
+      "GND": {
+        "kind": "ground"
+      }
+    },
+    "nets": {
+      "input": ["VIN", "R1.a"],
+      "output": ["R1.b", "R2.a", "RL.a", "VOUT"],
+      "ground": ["R2.b", "RL.b", "GND"]
+    }
+  },
+  "layout": {
+    "preset": "loaded-divider",
+    "roles": {
+      "top": "R1",
+      "bottom": "R2",
+      "load": "RL",
+      "input": "VIN",
+      "output": "VOUT",
+      "ground": "GND"
+    }
+  },
+  "presentation": {
+    "title": "Loaded voltage divider",
+    "theme": {
+      "preset": "geist-light"
+    }
+  }
+}

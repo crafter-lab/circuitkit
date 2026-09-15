@@ -1,0 +1,17 @@
+node_modules/
+.next/
+dist/
+*.tsbuildinfo
+artifacts/
+*.tgz
+.env*
+.DS_Store
+
+GOAL.md
+friction.md
+plans/
+docs/cli-case.md
+docs/gallery-goal.md
+docs/gallery-verification.md
+docs/lesson-figure.md
+docs/verification.md

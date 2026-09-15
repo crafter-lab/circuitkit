@@ -1,0 +1,62 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "R1": {
+        "type": "resistor",
+        "resistance": 1000
+      },
+      "R2": {
+        "type": "resistor",
+        "resistance": 1000
+      },
+      "R3": {
+        "type": "resistor",
+        "resistance": 1000
+      },
+      "R4": {
+        "type": "resistor",
+        "resistance": 1200
+      }
+    },
+    "ports": {
+      "VIN": {
+        "kind": "terminal"
+      },
+      "VLEFT": {
+        "kind": "terminal"
+      },
+      "VRIGHT": {
+        "kind": "terminal"
+      },
+      "GND": {
+        "kind": "ground"
+      }
+    },
+    "nets": {
+      "excitation": ["VIN", "R1.a", "R3.a"],
+      "left": ["R1.b", "R2.a", "VLEFT"],
+      "right": ["R3.b", "R4.a", "VRIGHT"],
+      "ground": ["R2.b", "R4.b", "GND"]
+    }
+  },
+  "layout": {
+    "preset": "wheatstone-bridge",
+    "roles": {
+      "upperLeft": "R1",
+      "lowerLeft": "R2",
+      "upperRight": "R3",
+      "lowerRight": "R4",
+      "input": "VIN",
+      "outputLeft": "VLEFT",
+      "outputRight": "VRIGHT",
+      "ground": "GND"
+    }
+  },
+  "presentation": {
+    "title": "Wheatstone bridge",
+    "theme": {
+      "preset": "geist-light"
+    }
+  }
+}

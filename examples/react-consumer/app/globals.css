@@ -1,0 +1,91 @@
+:root {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #202020;
+  background: #fff;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  max-width: 1100px;
+  margin: auto;
+  padding: 64px 24px;
+}
+h1 {
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 500;
+  letter-spacing: -1.5px;
+}
+p {
+  font-size: 13px;
+  color: #606060;
+  line-height: 1.8;
+}
+.eyebrow {
+  text-transform: uppercase;
+  font-family: monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 24px;
+  margin-top: 32px;
+}
+label {
+  display: flex;
+  flex: 1 1 180px;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 12px;
+}
+input,
+select {
+  padding: 12px;
+  border: 1px solid #d6d6d6;
+  border-radius: 4px;
+  background: white;
+  color: #202020;
+  font: inherit;
+  min-height: 44px;
+}
+:focus-visible {
+  outline: 2px solid #205fc4;
+  outline-offset: 4px;
+}
+.figure {
+  margin: 40px 0;
+  overflow-x: auto;
+  border: 1px solid #e5e5e5;
+  padding: 24px;
+}
+.figure > svg {
+  display: block;
+  width: 100%;
+  min-width: 500px;
+  height: auto;
+}
+.figure[role="alert"] {
+  border-color: #b3261e;
+  font-size: 13px;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+summary {
+  cursor: pointer;
+  padding: 16px 0;
+  font-size: 13px;
+}
+pre {
+  overflow: auto;
+  padding: 20px;
+  background: #fafafa;
+  font-size: 12px;
+  line-height: 1.7;
+}

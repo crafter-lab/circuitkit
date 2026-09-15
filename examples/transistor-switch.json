@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "circuit": {
+    "components": {
+      "V1": {
+        "type": "dc-source",
+        "voltage": 5
+      },
+      "RB": {
+        "type": "resistor",
+        "resistance": 10000
+      },
+      "RS": {
+        "type": "resistor",
+        "resistance": 330
+      },
+      "D1": {
+        "type": "led"
+      },
+      "Q1": {
+        "type": "npn"
+      }
+    },
+    "ports": {
+      "CTRL": {
+        "kind": "terminal"
+      },
+      "GND": {
+        "kind": "ground"
+      }
+    },
+    "nets": {
+      "supply": ["V1.positive", "RS.a"],
+      "led_anode": ["RS.b", "D1.anode"],
+      "collector": ["D1.cathode", "Q1.collector"],
+      "control": ["CTRL", "RB.a"],
+      "base": ["RB.b", "Q1.base"],
+      "ground": ["Q1.emitter", "V1.negative", "GND"]
+    }
+  },
+  "layout": {
+    "preset": "transistor-switch",
+    "roles": {
+      "supply": "V1",
+      "baseResistor": "RB",
+      "series": "RS",
+      "led": "D1",
+      "switch": "Q1",
+      "control": "CTRL",
+      "ground": "GND"
+    }
+  },
+  "presentation": {
+    "title": "NPN low-side LED switch",
+    "theme": {
+      "preset": "geist-light"
+    }
+  }
+}
