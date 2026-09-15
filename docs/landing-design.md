@@ -21,7 +21,7 @@ The hero reuses `dividerLesson` unchanged and `CircuitLessonFigure` directly. Th
 
 Three concise value propositions cover electrical nodes, portable SVG, and the local author/agent contract. The topology count and links are derived from `getCatalog().recipes`, currently nine. Gallery/stress/test counts are deliberately absent. The code example uses the actual core API and handles both success and diagnostics.
 
-Source instructions explicitly state that CircuitKit is not published to npm. They show cloning the public repository, `cd circuitkit`, `bun install`, and `bun run build`. `bun run dev` is explained separately. Package imports assume a built local tarball is installed in the consumer; the landing never suggests a registry install is available. See the [source-build and local-package instructions](../README.md) for the complete workflow.
+Source instructions explicitly state that CircuitKit is not published to npm. They show cloning the public repository, `cd circuitkit`, `bun install`, and `bun run build`. `bun run dev` is explained separately. Package imports assume a built local tarball is installed in the consumer; the landing never suggests a registry install is available. See the [source-build and local-package instructions](guide.md) for the complete workflow.
 
 The footer includes Apache-2.0 and source links. The limitation statement excludes simulation, electrical-safety certification, and fabrication. No social proof, security certification, or production guarantees are invented.
 

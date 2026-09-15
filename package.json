@@ -30,6 +30,7 @@
     "README.md",
     "examples/*.json",
     "skills",
+    "docs/guide.md",
     "docs/cli-contract.md",
     "docs/complex-circuits.md",
     "docs/stress-corpus.md",

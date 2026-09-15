@@ -1,6 +1,6 @@
 # Testing CircuitKit
 
-Run commands from the source checkout root with Bun and the pinned dependencies installed. CircuitKit is not published to npm. Use the [source-build instructions](../README.md), not a registry install of `circuitkit`. The root `private: true` guards against accidental npm publication; it does not prevent local builds or tarball verification.
+Run commands from the source checkout root with Bun and the pinned dependencies installed. CircuitKit is not published to npm. Use the [source-build instructions](guide.md), not a registry install of `circuitkit`. The root `private: true` guards against accidental npm publication; it does not prevent local builds or tarball verification.
 
 ## Deterministic core and focused contracts
 
