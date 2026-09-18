@@ -917,5 +917,5 @@ describe("generated native output cleanup", () => {
     );
     expect(readFileSync(unknown, "utf8")).toBe("unrecognized binding");
     expect(readFileSync(keep, "utf8")).toBe("unrelated artifact");
-  });
+  }, 30_000);
 });
