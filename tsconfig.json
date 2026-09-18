@@ -31,9 +31,14 @@
     "app/**/*.ts",
     "app/**/*.tsx",
     "next.config.ts",
+    "proxy.ts",
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "artifacts/flow-highlights/next-dev/types/**/*.ts",
+    "artifacts/flow-highlights/next-dev/dev/types/**/*.ts",
+    "artifacts/brand-kit/next/types/**/*.ts",
+    "artifacts/brand-kit/next/dev/types/**/*.ts"
   ],
   "exclude": ["node_modules", "examples/react-consumer", "dist"]
 }
