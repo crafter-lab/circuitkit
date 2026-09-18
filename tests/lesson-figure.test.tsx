@@ -32,7 +32,9 @@ describe("CircuitLessonFigure with the real annotation core", () => {
       expect(result.ok).toBe(true);
       if (!result.ok) return;
       expect(result.annotations?.nets).toHaveLength(3);
-      const markup = renderToStaticMarkup(<CircuitLessonFigure document={document} />);
+      const markup = renderToStaticMarkup(
+        <CircuitLessonFigure layout="expanded" document={document} />,
+      );
       expect(markup).toStartWith("<figure");
       expect(markup).toContain("<section");
       expect(markup).toContain('circuit diagram"');
@@ -72,6 +74,7 @@ describe("CircuitLessonFigure with the real annotation core", () => {
       ]);
       const markup = renderToStaticMarkup(
         <CircuitLessonFigure
+          layout="expanded"
           document={document}
           activeNet="summing"
           onActiveNetChange={() => {}}
@@ -97,6 +100,7 @@ describe("CircuitLessonFigure with the real annotation core", () => {
       expect(result.document.presentation.highlight?.components).toEqual(["R1"]);
       const markup = renderToStaticMarkup(
         <CircuitLessonFigure
+          layout="expanded"
           document={document}
           activeNet={activeNet}
           onActiveNetChange={() => {}}
@@ -142,8 +146,14 @@ describe("CircuitLessonFigure with the real annotation core", () => {
     const render = () =>
       renderToString(
         <>
-          <CircuitLessonFigure document={divider} activeNet="ground" onActiveNetChange={() => {}} />
           <CircuitLessonFigure
+            layout="expanded"
+            document={divider}
+            activeNet="ground"
+            onActiveNetChange={() => {}}
+          />
+          <CircuitLessonFigure
+            layout="expanded"
             document={amplifier}
             activeNet="summing"
             onActiveNetChange={() => {}}
@@ -175,7 +185,7 @@ describe("CircuitLessonFigure with the real annotation core", () => {
       ],
     });
     const markup = renderToStaticMarkup(
-      <CircuitLessonFigure document={document} activeNet="missing" />,
+      <CircuitLessonFigure layout="expanded" document={document} activeNet="missing" />,
     );
     expect(markup).toContain('role="alert"');
     expect(markup).toContain("lesson.unknown_active_net");
@@ -185,7 +195,9 @@ describe("CircuitLessonFigure with the real annotation core", () => {
   test.each([undefined, null, {}, { version: 999 }])(
     "invalid unknown document is readable and clears the SVG",
     (document) => {
-      const markup = renderToStaticMarkup(<CircuitLessonFigure document={document} />);
+      const markup = renderToStaticMarkup(
+        <CircuitLessonFigure layout="expanded" document={document} />,
+      );
       expect(markup).toContain("Figure unavailable");
       expect(diagram(markup)).toBeNull();
     },
@@ -193,16 +205,16 @@ describe("CircuitLessonFigure with the real annotation core", () => {
 
   test("value and theme prop updates recover from invalid input", () => {
     const broken = renderToStaticMarkup(
-      <CircuitLessonFigure document={dividerLesson("geist-light", -1)} />,
+      <CircuitLessonFigure layout="expanded" document={dividerLesson("geist-light", -1)} />,
     );
     expect(diagram(broken)).toBeNull();
     const valid = dividerLesson("geist-print", 22000);
     const result = renderSVG(valid);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(diagram(renderToStaticMarkup(<CircuitLessonFigure document={valid} />))).toBe(
-      result.svg,
-    );
+    expect(
+      diagram(renderToStaticMarkup(<CircuitLessonFigure layout="expanded" document={valid} />)),
+    ).toBe(result.svg);
   });
 
   test("callbacks are typed and never invoked during rendering, including failures", () => {
@@ -214,6 +226,7 @@ describe("CircuitLessonFigure with the real annotation core", () => {
     for (const document of [null, dividerLesson("geist-light", 10000)]) {
       renderToString(
         <CircuitLessonFigure
+          layout="expanded"
           document={document}
           onDiagnostics={onDiagnostics}
           onActiveNetChange={onActiveNetChange}
@@ -226,7 +239,11 @@ describe("CircuitLessonFigure with the real annotation core", () => {
 
   test("no handler is explicitly read-only, but the complete legend remains focusable", () => {
     const markup = renderToStaticMarkup(
-      <CircuitLessonFigure document={dividerLesson("geist-light", 10000)} activeNet="input" />,
+      <CircuitLessonFigure
+        layout="expanded"
+        document={dividerLesson("geist-light", 10000)}
+        activeNet="input"
+      />,
     );
     expect(markup).toContain('data-mode="read-only"');
     expect(markup).toContain("Read-only figure");
@@ -239,7 +256,9 @@ describe("CircuitLessonFigure with the real annotation core", () => {
     const result = renderSVG(document);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    const markup = renderToStaticMarkup(<CircuitLessonFigure document={document} />);
+    const markup = renderToStaticMarkup(
+      <CircuitLessonFigure layout="expanded" document={document} />,
+    );
     expect(diagram(markup)).toBe(result.svg);
     expect(markup).not.toContain("<dl");
     expect(markup).not.toContain("<button");
@@ -250,7 +269,9 @@ describe("CircuitLessonFigure with the real annotation core", () => {
   test("legend false omits HTML legend without losing caption or diagram annotations", () => {
     const document = dividerLesson("geist-light", 10000);
     if (document.presentation.annotations) document.presentation.annotations.legend = false;
-    const markup = renderToStaticMarkup(<CircuitLessonFigure document={document} />);
+    const markup = renderToStaticMarkup(
+      <CircuitLessonFigure layout="expanded" document={document} />,
+    );
     expect(markup).not.toContain("<dl");
     expect(markup).toContain("<figcaption");
     expect(markup).toContain("circuit-lesson-hit-layer");
