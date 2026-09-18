@@ -1,14 +1,46 @@
 "use client";
 
 import { useEffect, useMemo } from "react";
-import { type Diagnostic, type FigureDocument, renderSVG } from "./index.ts";
+import { renderSchematicSVG, renderSVG } from "./renderer.ts";
+import type { FigureDocument } from "./schema.ts";
+import type { Diagnostic } from "./types.ts";
 
 export { CircuitLessonFigure, type CircuitLessonFigureProps } from "./lesson-figure.tsx";
+export { CircuitLessonSequence, type CircuitLessonSequenceProps } from "./lesson-sequence.tsx";
 
 export interface CircuitFigureProps {
   document: FigureDocument | unknown;
   className?: string;
   onDiagnostics?: (diagnostics: Diagnostic[]) => void;
+}
+
+export interface CircuitSchematicProps {
+  document: unknown;
+  className?: string;
+  onDiagnostics?: (diagnostics: Diagnostic[]) => void;
+}
+
+export function CircuitSchematic({ document, className, onDiagnostics }: CircuitSchematicProps) {
+  const result = useMemo(() => renderSchematicSVG(document), [document]);
+
+  useEffect(() => {
+    onDiagnostics?.(result.diagnostics);
+  }, [result, onDiagnostics]);
+
+  if (!result.ok) return null;
+
+  return (
+    <div
+      className={className}
+      style={{ minWidth: 0, maxWidth: "100%" }}
+      dangerouslySetInnerHTML={{
+        __html: result.svg.replace(
+          "<svg ",
+          '<svg style="display:block;max-width:100%;height:auto" ',
+        ),
+      }}
+    />
+  );
 }
 
 export function CircuitFigure({ document, className, onDiagnostics }: CircuitFigureProps) {

@@ -1,0 +1,11 @@
+Use case: logo-brand
+Asset type: original primary logo concept for CircuitKit, suitable for a developer-tool website, package README and avatar
+Primary request: Design one distinctive, minimal logo for CircuitKit, an open-source toolkit that turns declarative text into clear circuit diagrams for coding agents and educational explanations.
+Scene/backdrop: solid pure white, flat and uniform.
+Subject: a compact geometric symbol that subtly combines a capital C with an electrical connection. Use a bold continuous circuit-like path and only two clear terminal nodes. The silhouette must feel intentional, simple and recognizable at small sizes. Pair the symbol with the exact wordmark below it.
+Style/medium: precise flat graphic design with vector-like edges; understated, technical and carefully balanced. A finished identity asset, not a mockup.
+Composition/framing: one centered symbol with the wordmark beneath; generous clear space, strong silhouette, balanced negative space and optical spacing. The symbol should work independently as an app icon.
+Color palette: monochrome near-black #141414 on white #ffffff, matching the existing CircuitKit interface.
+Text (verbatim): "CircuitKit". Uppercase C and K, all other letters lowercase. Clean contemporary sans-serif typography close to Geist, medium weight, careful kerning.
+Constraints: one design only; crisp edges; no extra text, slogans, labels or watermark. Original symbol with no reference to other company marks.
+Avoid: complex circuit boards, many branching traces, microchips, lightning bolts, robots, AI sparkles, gradients, shadows, 3D, bevels, textures, glow, presentation grids or decorative framing.

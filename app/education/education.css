@@ -1,0 +1,373 @@
+.education-page {
+  min-width: 0;
+  padding: 24px var(--page-padding, 24px);
+  color: var(--foreground);
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.education-intro {
+  max-width: 880px;
+  margin-bottom: 24px;
+}
+
+.education-page h1 {
+  margin: 8px 0 12px;
+  font-size: clamp(26px, 3vw, 40px);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.education-page h2 {
+  margin: 24px 0 12px;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.education-eyebrow {
+  margin: 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.education-workbench {
+  min-width: 0;
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.education-toolbar,
+.education-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  margin-block: 12px;
+  min-width: 0;
+}
+
+fieldset.education-toolbar {
+  padding: 0;
+  border: 0;
+}
+
+.education-toolbar label {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.education-toolbar select,
+.education-toolbar button,
+.education-links a,
+.education-page .education-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  max-width: 100%;
+  padding: 4px 10px;
+  border: 1px solid var(--input);
+  border-radius: 0;
+  color: var(--foreground);
+  background: var(--background);
+  font: inherit;
+  font-size: 12px;
+  line-height: 22px;
+  text-decoration: none;
+}
+
+.education-toolbar select {
+  width: 100%;
+  min-width: 0;
+}
+
+.education-toolbar button,
+.education-toolbar select {
+  cursor: pointer;
+}
+
+.education-toolbar button:hover:not(:disabled),
+.education-links a:hover,
+.education-toolbar [aria-pressed="true"] {
+  background: var(--secondary);
+}
+
+.education-links .education-primary,
+.education-page .education-primary {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.education-toolbar button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.education-workbench :is(button, select, textarea, a):focus-visible,
+.education-page :is(button, select, textarea, a):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.education-note,
+.education-card-heading p {
+  margin: 8px 0;
+  font-size: 12px;
+  color: var(--muted-foreground);
+}
+
+.education-editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.education-source,
+.education-output,
+.education-preview-grid,
+.education-gallery-figure {
+  min-width: 0;
+}
+
+.education-source > label {
+  display: block;
+  font-weight: 500;
+}
+
+.education-source textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 360px;
+  height: 52vh;
+  padding: 12px;
+  border: 1px solid var(--input);
+  border-radius: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  resize: vertical;
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.education-canvas {
+  min-width: 0;
+  padding-block: 12px;
+  border-block: 1px solid var(--border);
+}
+
+.education-canvas figure,
+.education-canvas svg {
+  max-width: 100%;
+}
+
+.education-canvas svg {
+  width: 100%;
+  height: auto;
+}
+
+.education-canvas figcaption {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.education-figure-viewport {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.education-viewport-scroll {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  max-height: var(--education-viewport-height);
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding: 8px;
+  touch-action: pan-x pan-y;
+}
+
+.education-viewport-scroll:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.education-viewport-canvas {
+  flex: none;
+  max-width: none;
+}
+
+.education-viewport-canvas figcaption {
+  max-width: var(--education-caption-width, 100%);
+  overflow-wrap: anywhere;
+}
+
+.education-toolbar.education-viewport-controls {
+  align-items: center;
+  gap: 4px;
+  margin-block: 4px 8px;
+}
+
+.education-viewport-controls .education-note,
+.education-viewport-hint {
+  margin-block: 4px;
+}
+
+.education-case-name {
+  display: block;
+  color: var(--foreground);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.education-status {
+  min-height: 22px;
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.education-net-manifest {
+  min-width: 0;
+  margin-block: 8px;
+}
+
+.education-net-manifest summary {
+  min-height: 32px;
+  padding-block: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.education-net-manifest summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.education-net-manifest pre {
+  max-width: 100%;
+  margin: 8px 0;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.education-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.education-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  align-self: start;
+}
+
+.education-card[data-selected="true"] {
+  border-color: var(--foreground);
+}
+
+.education-card h3 {
+  margin: 4px 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.education-host {
+  min-width: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.education-host table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-block: 8px;
+}
+
+.education-host :is(th, td) {
+  padding: 6px;
+  border: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.education-host caption {
+  text-align: left;
+  padding-block: 6px;
+}
+
+.education-host dl > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.education-host dd {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .education-editor-grid,
+  .education-gallery-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .education-page {
+    padding: 16px;
+  }
+
+  .education-toolbar label {
+    flex: 1 1 120px;
+  }
+
+  .education-toolbar .education-case-control {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .education-toolbar select {
+    font-size: 16px;
+  }
+
+  .education-source textarea {
+    min-height: 260px;
+    height: 38vh;
+    font-size: 16px;
+  }
+}
+
+@media (pointer: coarse) {
+  .education-net-manifest summary,
+  .education-toolbar button,
+  .education-toolbar select,
+  .education-links a,
+  .education-page .education-primary {
+    min-height: 44px;
+  }
+}

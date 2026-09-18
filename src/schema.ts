@@ -36,6 +36,34 @@ export const idSchema = z
   .string()
   .min(1)
   .regex(/^[^.]+$/, "IDs must not contain '.'; it separates component IDs from pins.");
+const stepText = (maximum: number) =>
+  z
+    .string()
+    .max(maximum)
+    .refine(
+      (value) =>
+        ![...value].some((character) => {
+          const code = character.codePointAt(0) ?? 0;
+          return (
+            code < 32 || (code >= 0xd800 && code <= 0xdfff) || code === 0xfffe || code === 0xffff
+          );
+        }),
+      "Step text cannot contain XML control characters.",
+    );
+const stepIdSchema = stepText(128).refine(
+  (value) => value.trim().length > 0,
+  "Use a nonempty step ID.",
+);
+export const teachingStepSchema = z.strictObject({
+  id: stepIdSchema,
+  title: stepText(160).refine((value) => value.trim().length > 0, "Use a nonempty step title."),
+  description: stepText(2000),
+  highlight: z.strictObject({
+    components: z.array(idSchema.max(128)).max(32),
+    nets: z.array(idSchema.max(128)).max(32),
+  }),
+});
+export type TeachingStep = z.infer<typeof teachingStepSchema>;
 const positiveSI = z.number().finite().positive();
 const opaqueHex = z
   .string()
@@ -117,6 +145,8 @@ export const figureSchema = z
     presentation: z.strictObject({
       title: z.string(),
       annotations: annotationsSchema.optional(),
+      steps: z.array(teachingStepSchema).max(32).optional(),
+      activeStep: stepIdSchema.optional(),
       theme: z.strictObject({
         preset: themePresetSchema,
         overrides: themeOverridesSchema.optional(),

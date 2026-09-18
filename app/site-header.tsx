@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { ThemeToggle } from "./theme-provider.tsx";
 
 const navigation = [
-  { href: "/editor", label: "Editor" },
-  { href: "/gallery", label: "Gallery" },
-  { href: "/lesson", label: "Lesson" },
+  { href: "/editor?mode=circuitkit", label: "Playground" },
+  { href: "/gallery", label: "Examples" },
+  { href: "/docs", label: "Docs" },
 ];
 
 export function SiteHeader() {
@@ -27,13 +27,18 @@ export function SiteHeader() {
             href={href}
             prefetch={false}
             aria-current={
-              pathname === href || pathname?.startsWith(`${href}/`) ? "page" : undefined
+              pathname === href.split("?")[0] || pathname?.startsWith(`${href.split("?")[0]}/`)
+                ? "page"
+                : undefined
             }
           >
             {label}
           </Link>
         ))}
-        <ThemeToggle />
+        <a href="https://github.com/crafter-lab/circuitkit" aria-label="CircuitKit on GitHub">
+          GitHub ↗
+        </a>
+        <ThemeToggle compact />
       </nav>
     </header>
   );

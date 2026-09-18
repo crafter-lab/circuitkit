@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import type { Diagnostic, ThemePreset } from "../../src/index.ts";
-import { CircuitLessonFigure } from "../../src/react.tsx";
-import { amplifierLesson, dividerLesson } from "./documents.ts";
+import { resolveLessonSequence } from "../../src/lesson-sequence.tsx";
+import { CircuitLessonFigure, CircuitLessonSequence } from "../../src/react.tsx";
+import { amplifierLesson, dividerLesson, rcLesson } from "./documents.ts";
 
 export default function LessonClient() {
   const [theme, setTheme] = useState<ThemePreset>("geist-light");
@@ -17,6 +18,29 @@ export default function LessonClient() {
     [theme, resistance, invalid],
   );
   const amplifier = useMemo(() => amplifierLesson(theme), [theme]);
+  const rc = useMemo(() => rcLesson(theme), [theme]);
+  const [showSequences, setShowSequences] = useState(false);
+  const [sequenceSteps, setSequenceSteps] = useState<
+    Record<"divider" | "rc" | "amplifier", string | null>
+  >({
+    divider: null,
+    rc: null,
+    amplifier: null,
+  });
+  const sequenceExamples = useMemo(
+    () =>
+      (
+        [
+          ["divider", divider],
+          ["rc", rc],
+          ["amplifier", amplifier],
+        ] as const
+      ).map(([id, document]) => {
+        const selected = resolveLessonSequence(document, sequenceSteps[id]);
+        return { id, document: selected.ok ? selected.document : document };
+      }),
+    [divider, rc, amplifier, sequenceSteps],
+  );
 
   return (
     <>
@@ -126,6 +150,44 @@ export default function LessonClient() {
             onActiveNetChange={setAmplifierNet}
             download
           />
+        </div>
+      </section>
+      <section className="lesson-chapter" aria-labelledby="sequences-heading">
+        <div className="lesson-prose">
+          <span className="eyebrow">03 / Read at your own pace</span>
+          <h2 id="sequences-heading">Three guided teaching sequences.</h2>
+          <p>
+            Explore a voltage divider, an RC low-pass filter and a feedback amplifier. Each authored
+            step selects components and whole nets without changing the circuit. Previous, Next and
+            Show all are manual controls, not a simulation or an animation.
+          </p>
+          <button
+            type="button"
+            aria-expanded={showSequences}
+            aria-controls="lesson-sequences"
+            onClick={() => setShowSequences((previous) => !previous)}
+          >
+            {showSequences ? "Hide teaching sequences" : "Open teaching sequences"}
+          </button>
+        </div>
+        <div id="lesson-sequences" className="lesson-figure-column">
+          {showSequences
+            ? sequenceExamples.map(({ id, document }) => (
+                <CircuitLessonSequence
+                  key={id}
+                  className={`lesson-sequence-${id}`}
+                  document={document}
+                  activeStep={sequenceSteps[id]}
+                  onActiveStepChange={(_next, selectedDocument) =>
+                    setSequenceSteps((previous) => ({
+                      ...previous,
+                      [id]: selectedDocument.presentation.activeStep ?? null,
+                    }))
+                  }
+                  download
+                />
+              ))
+            : null}
         </div>
       </section>
     </>

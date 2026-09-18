@@ -1,14 +1,20 @@
 {
   "name": "circuitkit",
   "version": "0.1.0",
-  "private": true,
-  "description": "Typed circuit diagrams, linked node annotations and portable SVG for authors and agents.",
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "description": "Minimal circuit schematics, optional teaching layers, and portable SVG/PNG for authors and agents.",
   "repository": {
     "type": "git",
     "url": "https://github.com/crafter-lab/circuitkit.git"
   },
   "bugs": "https://github.com/crafter-lab/circuitkit/issues",
-  "homepage": "https://circuitkit.vercel.app",
+  "homepage": "https://circuitkit.crafter.ing",
   "type": "module",
   "license": "Apache-2.0",
   "exports": {
@@ -19,10 +25,55 @@
     "./react": {
       "types": "./dist/react.d.ts",
       "import": "./dist/react.js"
+    },
+    "./png": {
+      "types": "./dist/png.d.ts",
+      "import": "./dist/png.js"
+    },
+    "./markdown": {
+      "types": "./dist/markdown.d.ts",
+      "import": "./dist/markdown.js"
+    },
+    "./share": {
+      "types": "./dist/share.d.ts",
+      "import": "./dist/share.js"
+    },
+    "./language": {
+      "types": "./dist/language/index.d.ts",
+      "import": "./dist/language/index.js"
+    },
+    "./diagram": {
+      "types": "./dist/diagram/index.d.ts",
+      "import": "./dist/diagram/index.js"
+    },
+    "./v2": {
+      "types": "./dist/v2/index.d.ts",
+      "import": "./dist/v2/index.js"
+    },
+    "./v2/public": {
+      "types": "./dist/v2/render.d.ts",
+      "import": "./dist/v2/render.js"
+    },
+    "./v2/react": {
+      "types": "./dist/v2/react.d.ts",
+      "import": "./dist/v2/react.js"
+    },
+    "./v2/png": {
+      "types": "./dist/v2/png.d.ts",
+      "import": "./dist/v2/png.js"
+    },
+    "./v2/server": {
+      "types": "./dist/v2/index.d.ts",
+      "import": "./dist/v2/index.js"
+    },
+    "./gradual": {
+      "types": "./dist/integrations/gradual.d.ts",
+      "import": "./dist/integrations/gradual.js"
     }
   },
   "bin": {
-    "circuitkit": "./dist/cli.js"
+    "circuitkit": "./dist/cli.js",
+    "circuitkit-education": "./dist/education-cli.js"
   },
   "files": [
     "dist",
@@ -30,27 +81,58 @@
     "README.md",
     "examples/*.json",
     "skills",
+    "agent-skills",
+    "docs/site",
     "docs/guide.md",
     "docs/cli-contract.md",
     "docs/complex-circuits.md",
     "docs/stress-corpus.md",
     "docs/testing.md",
     "docs/landing-design.md",
+    "docs/authoring-contract.md",
+    "docs/editor-authoring.md",
+    "docs/markdown.md",
+    "docs/diagram-language.md",
+    "docs/compact-language.md",
+    "docs/presentation.md",
+    "examples/diagrams/*.ck",
+    "examples/diagrams/*.json",
+    "examples/diagrams/*.md",
+    "docs/teaching-steps.md",
+    "docs/schematic.md",
+    "docs/v2-contract.md",
+    "docs/v2-react.md",
+    "docs/v2-cli.md",
+    "docs/gradual-adapter.md",
+    "docs/education-authoring.md",
+    "docs/education-migration.md",
+    "docs/education-decisions.md",
+    "examples/education/*.ts",
+    "examples/lessons/*.json",
+    "examples/lessons/*.md",
     "LICENSE",
     "NOTICE",
     "THIRD_PARTY_LICENSES.md"
   ],
   "scripts": {
+    "brand:generate": "bun scripts/generate-brand-assets.ts",
     "build": "bun scripts/build.ts",
     "dev": "next dev --hostname 127.0.0.1",
     "build:web": "next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "bun test ./tests",
+    "test:diagrams": "bun test tests/diagram-*.test.ts",
+    "test:language": "bun test tests/language*.test.ts",
+    "measure:language": "bun scripts/measure-language.ts",
+    "test:education": "bun test tests/v2-*.test.ts tests/v2-react.test.tsx tests/education-cli.test.ts tests/education-examples.test.ts tests/education-web.test.tsx tests/package-education-build.test.ts",
+    "test:gradual": "bun test tests/gradual-corpus.test.ts tests/gradual-adapter.test.ts tests/education-consumer.test.ts",
+    "extract:gradual": "bun --no-env-file scripts/extract-gradual.ts",
+    "check:gradual": "bun --no-env-file scripts/check-gradual-coverage.ts",
     "check": "biome check ."
   },
   "peerDependencies": {
-    "react": "19.3.0"
+    "react": "19.2.8 || 19.3.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -58,20 +140,35 @@
     }
   },
   "dependencies": {
+    "@resvg/resvg-js": "2.6.2",
+    "mdast-util-from-markdown": "2.0.3",
     "zod": "4.6.2"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.13",
+    "@codemirror/commands": "6.11.0",
+    "@codemirror/lang-json": "6.0.2",
+    "@codemirror/lang-markdown": "6.5.2",
+    "@codemirror/language": "6.12.4",
+    "@codemirror/state": "6.7.4",
+    "@codemirror/view": "6.43.11",
+    "@lezer/highlight": "1.2.3",
     "@tailwindcss/postcss": "4.3.3",
     "@types/bun": "1.4.2",
     "@types/node": "26.5.1",
     "@types/opentype.js": "1.3.10",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
+    "@vercel/agent-readability": "0.7.0",
+    "gpt-tokenizer": "4.0.0",
+    "mdast-util-gfm": "3.1.0",
+    "micromark-extension-gfm": "3.0.0",
     "next": "16.3.5",
     "next-themes": "0.4.6",
     "opentype.js": "2.0.0",
     "react-dom": "19.3.0",
+    "sharp": "0.35.4",
+    "shiki": "4.4.3",
     "tailwindcss": "4.3.3",
     "typescript": "7.0.2"
   }

@@ -1,8 +1,17 @@
 "use client";
 
-import { type CSSProperties, useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  type ButtonHTMLAttributes,
+  type CSSProperties,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { CompactLegend } from "./compact-legend.tsx";
 import { renderFigureSVG } from "./figure-svg.ts";
-import { renderSVG } from "./renderer.ts";
+import { deriveStepPresentation, renderSchematicSVG, renderSVG } from "./renderer.ts";
 import { resolveTheme } from "./theme.ts";
 import type { Diagnostic, RenderResult, ResolvedNetAnnotation } from "./types.ts";
 
@@ -13,10 +22,25 @@ export interface CircuitLessonFigureProps {
   className?: string;
   onDiagnostics?: (diagnostics: Diagnostic[]) => void;
   download?: boolean;
+  layout?: "compact" | "expanded";
+  notes?: boolean;
+  showDescription?: boolean;
 }
 
-export function resolveLessonFigure(document: unknown, activeNet?: string | null): RenderResult {
-  const result = renderSVG(document);
+export interface ResolveLessonFigureOptions {
+  layout?: "compact" | "expanded";
+}
+
+export function resolveLessonFigure(
+  document: unknown,
+  activeNet?: string | null,
+  options: ResolveLessonFigureOptions = {},
+): RenderResult {
+  const render =
+    options.layout === "compact"
+      ? (input: unknown) => renderSchematicSVG(input, { annotations: true })
+      : renderSVG;
+  const result = render(document);
   if (!result.ok || activeNet === undefined) return result;
   if (activeNet !== null && !Object.hasOwn(result.circuit.nets, activeNet)) {
     return {
@@ -30,20 +54,30 @@ export function resolveLessonFigure(document: unknown, activeNet?: string | null
       ],
     };
   }
-  return renderSVG({
+  const presentation = deriveStepPresentation(result.document.presentation);
+  const preview = render({
     ...result.document,
     presentation: {
-      ...result.document.presentation,
+      ...presentation,
       highlight: {
-        ...result.document.presentation.highlight,
+        components: presentation.highlight?.components ?? [],
         nets: activeNet === null ? [] : [activeNet],
       },
     },
   });
+  return preview.ok && result.document.presentation.activeStep !== undefined
+    ? { ...preview, document: result.document }
+    : preview;
 }
 
-export function exportLessonFigure(persisted: RenderResult): RenderResult {
-  return persisted.ok ? renderFigureSVG(persisted.document) : persisted;
+export function exportLessonFigure(
+  persisted: RenderResult,
+  options: ResolveLessonFigureOptions = {},
+): RenderResult {
+  if (!persisted.ok) return persisted;
+  return options.layout === "compact"
+    ? renderSchematicSVG(persisted.document, { annotations: true })
+    : renderFigureSVG(persisted.document);
 }
 
 type ScreenTransform = Pick<DOMMatrix, "a" | "b" | "c" | "d" | "e" | "f">;
@@ -93,12 +127,19 @@ export function CircuitLessonFigure({
   className,
   onDiagnostics,
   download = false,
+  layout = "compact",
+  notes = true,
+  showDescription = true,
 }: CircuitLessonFigureProps) {
   const id = useId();
   const diagramId = `${id}-diagram`;
   const captionId = `${id}-caption`;
   const legendId = `${id}-legend`;
-  const persisted = useMemo(() => resolveLessonFigure(document, activeNet), [document, activeNet]);
+  const compact = layout === "compact";
+  const persisted = useMemo(
+    () => resolveLessonFigure(document, activeNet, { layout }),
+    [document, activeNet, layout],
+  );
   const [hover, setHover] = useState<{ document: unknown; net: string } | null>(null);
   const [focus, setFocus] = useState<{ document: unknown; net: string } | null>(null);
   const [downloadError, setDownloadError] = useState<{
@@ -113,14 +154,8 @@ export function CircuitLessonFigure({
   const preview = annotations?.nets.find(({ net }) => net === (hovered ?? focused))?.net;
   const visible = useMemo(() => {
     if (!persisted.ok || !preview) return persisted;
-    return renderSVG({
-      ...persisted.document,
-      presentation: {
-        ...persisted.document.presentation,
-        highlight: { ...persisted.document.presentation.highlight, nets: [preview] },
-      },
-    });
-  }, [persisted, preview]);
+    return resolveLessonFigure(persisted.document, preview, { layout });
+  }, [persisted, preview, layout]);
   const diagnostics = useMemo(
     () => [
       ...visible.diagnostics,
@@ -165,7 +200,12 @@ export function CircuitLessonFigure({
   }
 
   const { theme } = resolveTheme(persisted.document);
-  const selected = persisted.document.presentation.highlight?.nets ?? [];
+  const selected =
+    activeNet === undefined
+      ? (deriveStepPresentation(persisted.document.presentation).highlight?.nets ?? [])
+      : activeNet === null
+        ? []
+        : [activeNet];
   const interactive = Boolean(onActiveNetChange);
   const title = persisted.document.presentation.title;
   const caption = annotations?.caption;
@@ -176,23 +216,80 @@ export function CircuitLessonFigure({
   const buttonStyle: CSSProperties = {
     font: "inherit",
     fontSize: "0.875rem",
-    color: theme.label,
-    background: theme.background,
-    border: `1px solid ${theme.border}`,
-    borderRadius: 5,
-    minHeight: 36,
-    minWidth: 36,
-    padding: "6px 12px",
+    color: compact ? `var(--circuit-control-color, ${theme.label})` : theme.label,
+    background: compact
+      ? `var(--circuit-control-background, ${theme.background})`
+      : theme.background,
+    border: compact
+      ? `1px solid var(--circuit-control-border, ${theme.border})`
+      : `1px solid ${theme.border}`,
+    borderRadius: compact ? "var(--circuit-control-radius, 0px)" : 5,
+    minHeight: compact ? "var(--circuit-control-size, 32px)" : 36,
+    minWidth: compact ? "var(--circuit-control-size, 32px)" : 36,
+    padding: compact ? "2px 8px" : "6px 12px",
+    boxSizing: "border-box",
+    flexShrink: 0,
+    whiteSpace: "nowrap",
     cursor: interactive ? "pointer" : "default",
   };
   const request = (net: string) => onActiveNetChange?.(selected.includes(net) ? null : net);
   const selectedNames = selected.map(
     (net) => annotations?.nets.find((item) => item.net === net)?.label ?? net,
   );
+  const clear = () => {
+    setHover(null);
+    setFocus(null);
+    onActiveNetChange?.(null);
+  };
+  const annotationProps = (
+    annotation: ResolvedNetAnnotation,
+  ): ButtonHTMLAttributes<HTMLButtonElement> => ({
+    style: {
+      ...buttonStyle,
+      color: annotation.color,
+      fontWeight: 650,
+      borderColor: selected.includes(annotation.net)
+        ? compact
+          ? `var(--circuit-control-color, ${theme.label})`
+          : theme.label
+        : compact
+          ? `var(--circuit-control-border, ${theme.border})`
+          : theme.border,
+      outline: focused === annotation.net ? `2px solid ${theme.label}` : undefined,
+      outlineOffset: compact ? -3 : 3,
+    },
+    onPointerEnter: (event) => {
+      if (event.pointerType === "touch") return;
+      touch.current = false;
+      setHover({ document, net: annotation.net });
+    },
+    onPointerLeave: () => setHover(null),
+    onPointerDown: (event) => {
+      touch.current = event.pointerType === "touch";
+      if (touch.current) {
+        setHover(null);
+        setFocus(null);
+      }
+    },
+    onFocus: (event) => {
+      if (event.currentTarget.matches(":focus-visible")) {
+        setHover(null);
+        setFocus({ document, net: annotation.net });
+      }
+    },
+    onPointerUp: (event) => {
+      if (event.pointerType === "touch") {
+        setHover(null);
+        setFocus(null);
+      }
+    },
+    onBlur: () => setFocus(null),
+    onClick: () => request(annotation.net),
+  });
 
   function saveFigure() {
     if (!persisted.ok) return;
-    const exported = exportLessonFigure(persisted);
+    const exported = exportLessonFigure(persisted, { layout });
     if (!exported.ok) {
       setDownloadError({ document, diagnostics: exported.diagnostics });
       return;
@@ -228,13 +325,14 @@ export function CircuitLessonFigure({
     <figure
       className={["circuit-lesson-figure", className].filter(Boolean).join(" ")}
       aria-label={title}
-      aria-describedby={caption ? captionId : undefined}
+      aria-describedby={!compact && caption ? captionId : undefined}
       data-mode={interactive ? "interactive" : "read-only"}
+      data-layout={layout}
       style={{
         margin: 0,
         minWidth: 0,
         maxWidth: "100%",
-        padding: "clamp(12px, 2vw, 24px)",
+        padding: compact ? 0 : "clamp(12px, 2vw, 24px)",
         background: theme.background,
         color: theme.label,
         fontFamily: "var(--font-geist, Geist), system-ui, sans-serif",
@@ -255,15 +353,44 @@ export function CircuitLessonFigure({
         id={diagramId}
         className="circuit-lesson-diagram"
         aria-label={`${title}: circuit diagram`}
-        aria-describedby={annotations?.legend ? legendId : caption ? captionId : undefined}
+        aria-describedby={
+          compact ? undefined : annotations?.legend ? legendId : caption ? captionId : undefined
+        }
         tabIndex={0}
+        onKeyDown={(event) => {
+          if (!compact || !interactive || !annotations?.nets.length) return;
+          const items = annotations.nets;
+          const index = items.findIndex((item) => item.net === (focused ?? selected[0]));
+          if (["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) {
+            event.preventDefault();
+            const next =
+              event.key === "Home"
+                ? 0
+                : event.key === "End"
+                  ? items.length - 1
+                  : (index + (event.key === "ArrowRight" ? 1 : items.length - 1) + items.length) %
+                    items.length;
+            const item = items[next];
+            if (item) {
+              setHover(null);
+              setFocus({ document, net: item.net });
+            }
+          } else if ((event.key === "Enter" || event.key === " ") && focused) {
+            event.preventDefault();
+            request(focused);
+          }
+        }}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setFocus(null);
+        }}
         style={{ width: "100%", maxWidth: "100%", overflowX: "auto", outlineOffset: 4 }}
       >
         <div
           style={{
             position: "relative",
             width: "100%",
-            minWidth: Math.min(width, Math.max(360, width * 0.6)),
+            minWidth: compact ? 0 : Math.min(width, Math.max(360, width * 0.6)),
+            maxWidth: compact ? width : undefined,
           }}
         >
           <div
@@ -345,7 +472,21 @@ export function CircuitLessonFigure({
           ) : null}
         </div>
       </section>
-      {annotations?.legend ? (
+      {compact ? (
+        <CompactLegend
+          id={id}
+          diagramId={diagramId}
+          annotations={annotations}
+          selected={selected}
+          preview={preview}
+          interactive={interactive}
+          notes={notes}
+          showDescription={showDescription}
+          buttonStyle={buttonStyle}
+          onClear={clear}
+          onDownload={download ? saveFigure : undefined}
+        />
+      ) : annotations?.legend ? (
         <>
           <div
             className="circuit-lesson-controls"
@@ -396,41 +537,7 @@ export function CircuitLessonFigure({
                     aria-describedby={`${id}-description-${index}`}
                     aria-pressed={selected.includes(annotation.net)}
                     aria-disabled={!interactive}
-                    style={{
-                      ...buttonStyle,
-                      color: annotation.color,
-                      fontWeight: 650,
-                      borderColor: selected.includes(annotation.net) ? theme.label : theme.border,
-                      outline: focused === annotation.net ? `2px solid ${theme.label}` : undefined,
-                      outlineOffset: 3,
-                    }}
-                    onPointerEnter={(event) => {
-                      if (event.pointerType === "touch") return;
-                      touch.current = false;
-                      setHover({ document, net: annotation.net });
-                    }}
-                    onPointerLeave={() => setHover(null)}
-                    onPointerDown={(event) => {
-                      touch.current = event.pointerType === "touch";
-                      if (touch.current) {
-                        setHover(null);
-                        setFocus(null);
-                      }
-                    }}
-                    onFocus={(event) => {
-                      if (event.currentTarget.matches(":focus-visible")) {
-                        setHover(null);
-                        setFocus({ document, net: annotation.net });
-                      }
-                    }}
-                    onPointerUp={(event) => {
-                      if (event.pointerType === "touch") {
-                        setHover(null);
-                        setFocus(null);
-                      }
-                    }}
-                    onBlur={() => setFocus(null)}
-                    onClick={() => request(annotation.net)}
+                    {...annotationProps(annotation)}
                   >
                     {annotation.label}
                   </button>
@@ -451,14 +558,28 @@ export function CircuitLessonFigure({
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          style={{ margin: "12px 0 0", color: theme.muted, fontSize: 13 }}
+          style={
+            compact
+              ? {
+                  position: "absolute",
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  margin: -1,
+                  overflow: "hidden",
+                  clipPath: "inset(50%)",
+                  whiteSpace: "nowrap",
+                  border: 0,
+                }
+              : { margin: "12px 0 0", color: theme.muted, fontSize: 13 }
+          }
         >
           {selectedNames.length
             ? `Selected: ${selectedNames.join(", ")}.`
             : "All nets shown. No selection."}
         </p>
       ) : null}
-      {download ? (
+      {!compact && download ? (
         <button
           type="button"
           style={{ ...buttonStyle, cursor: "pointer", marginTop: 16 }}
@@ -470,7 +591,7 @@ export function CircuitLessonFigure({
       {downloadError && downloadError.document === document ? (
         <p role="alert">{downloadError.diagnostics.map(({ message }) => message).join(" ")}</p>
       ) : null}
-      {caption ? (
+      {!compact && caption ? (
         <figcaption
           id={captionId}
           className="circuit-lesson-caption"

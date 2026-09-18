@@ -4,7 +4,7 @@ import "./lesson.css";
 export const metadata = {
   title: "Lesson | CircuitKit",
   description:
-    "Learn to read electrical nodes with linked circuit annotations and two independent figures.",
+    "Read electrical nodes with linked annotations and manual teaching sequences for a divider, RC filter and feedback amplifier.",
 };
 
 export default function LessonPage() {

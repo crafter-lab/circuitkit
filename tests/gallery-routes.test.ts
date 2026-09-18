@@ -311,7 +311,9 @@ describe("gallery editor handoff", () => {
       );
       expect(html.includes(escapeHTML(before))).toBe(true);
       expect(JSON.stringify(document, null, 2)).toBe(before);
-      expect(html.includes("Ready to export")).toBe(true);
+      expect(html).toContain("Checking share link");
+      expect(html).not.toContain("<svg");
+      expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Download SVG/);
       expect(html).not.toContain('value="undefined"');
       for (const [id, component] of Object.entries(document.circuit.components)) {
         const numeric =
@@ -341,7 +343,9 @@ describe("gallery editor handoff", () => {
       );
       expect(html).toContain(`/gallery/view?case=${encodeURIComponent(entry.id)}`);
       expect(html.includes(escapeHTML(JSON.stringify(entry.document, null, 2)))).toBe(true);
-      expect(html.includes("Ready to export")).toBe(true);
+      expect(html).toContain("Checking share link");
+      expect(html).not.toContain("<svg");
+      expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Download SVG/);
     },
   );
 
@@ -371,10 +375,12 @@ describe("gallery editor handoff", () => {
     },
   );
 
-  test("editor with no case retains the ready default and public contract", async () => {
+  test("editor with no case retains its default source while awaiting fragment inspection", async () => {
     const html = renderToStaticMarkup(await EditorPage());
     expect(html).toContain("Circuits, made legible.");
-    expect(html).toContain("Ready to export");
+    expect(html).toContain("Checking share link");
+    expect(html).not.toContain("<svg");
+    expect(html).toMatch(/<button[^>]*disabled=""[^>]*>Download SVG/);
     expect(html).toContain("Document JSON schema");
     expect(html).toContain("Recipes, pins &amp; SI parameters");
     expect(html).not.toContain("Editing a local copy of");

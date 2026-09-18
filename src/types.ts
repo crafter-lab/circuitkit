@@ -22,6 +22,10 @@ export interface Diagnostic {
   path: string;
   message: string;
   validPins?: string[];
+  range?: {
+    start: { offset: number; line: number; column: number };
+    end: { offset: number; line: number; column: number };
+  };
 }
 
 export interface Box {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getCatalog, type RecipeId, renderSVG } from "../../src/index.ts";
 import { complexRecipeIds } from "../../src/schema.ts";
 import { getGalleryCases } from "./corpus.ts";
@@ -72,6 +73,16 @@ export default async function GalleryPage({
           Explore branching networks, bridges, transistor stages, and feedback loops. Distinct
           circuit graphs first, then their values, themes, and focus variants. Drawing, not
           simulation.
+        </p>
+        <p>
+          <Link href="/gallery/education" prefetch={false}>
+            New v2 gallery: all 12 engine panel families and 18 adapter families →
+          </Link>
+          {" · "}
+          <Link href="/editor/education" prefetch={false}>
+            Open v2 editor
+          </Link>
+          {" · Existing recipe cases remain below for compatibility."}
         </p>
         <div className="gallery-intro-meta">
           <span>{new Set(cards.map((card) => card.recipe)).size} distinct topologies</span>

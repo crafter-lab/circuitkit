@@ -1,7 +1,13 @@
 import { describe, expect, test } from "bun:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { loadExample, renderSVG } from "../src/index.ts";
-import { CircuitFigure, type CircuitFigureProps } from "../src/react.tsx";
+import {
+  CircuitFigure,
+  type CircuitFigureProps,
+  CircuitSchematic,
+  type CircuitSchematicProps,
+} from "../src/react.tsx";
+import { renderSchematicSVG } from "../src/renderer.ts";
 import { recipeIds, themePresets } from "../src/schema.ts";
 
 function inlineSVG(markup: string) {
@@ -9,6 +15,42 @@ function inlineSVG(markup: string) {
   const end = markup.lastIndexOf("</svg>");
   return start < 0 ? null : markup.slice(start, end + 6);
 }
+
+describe("CircuitSchematic minimal adapter", () => {
+  for (const recipe of recipeIds) {
+    test(`${recipe}: SSR contains only the responsive pure SVG`, () => {
+      const document = loadExample(recipe);
+      const result = renderSchematicSVG(document);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      const markup = renderToStaticMarkup(
+        <CircuitSchematic document={document} className="minimal" />,
+      );
+      expect(
+        inlineSVG(markup)?.replace(' style="display:block;max-width:100%;height:auto"', ""),
+      ).toBe(result.svg);
+      expect(markup).toStartWith('<div class="minimal" style="min-width:0;max-width:100%">');
+      expect(markup).not.toMatch(/<button|<figcaption|<p\b|<details|<dl\b/);
+      expect(markup).not.toContain("padding:");
+      expect(markup).not.toContain("min-height:");
+      expect(markup).not.toContain("data-caption");
+    });
+  }
+
+  test("invalid input has no stale diagram or UI, and reports only after mounting", () => {
+    const received: unknown[] = [];
+    const onDiagnostics: CircuitSchematicProps["onDiagnostics"] = (diagnostics) =>
+      received.push(diagnostics);
+    for (const document of [null, {}, { version: 999 }]) {
+      expect(
+        renderToStaticMarkup(
+          <CircuitSchematic document={document} onDiagnostics={onDiagnostics} />,
+        ),
+      ).toBe("");
+    }
+    expect(received).toEqual([]);
+  });
+});
 
 describe("React adapter with the real core renderer", () => {
   for (const recipe of recipeIds) {

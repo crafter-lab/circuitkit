@@ -2,7 +2,7 @@ import { annotationHaloWidth, conductorPath, resolveAnnotations } from "./annota
 import { createComplexScene } from "./complex-scenes.ts";
 import type { Label, Point, Scene } from "./scene.ts";
 import { componentPins, type FigureDocument } from "./schema.ts";
-import { resolveTheme } from "./theme.ts";
+import { resolveTheme, type Theme } from "./theme.ts";
 import type { Box, Diagnostic, FigureBounds, RenderResult } from "./types.ts";
 import { escapeXML, number, textPath } from "./typography.ts";
 import { jsonPointer, validateDocument } from "./validation.ts";
@@ -330,7 +330,118 @@ const overlaps = (a: Box, b: Box) =>
   a.y + a.height > b.y;
 const finiteBox = (box: Box) => Object.values(box).every(Number.isFinite);
 
-function compile(document: FigureDocument) {
+export function deriveStepPresentation(
+  presentation: FigureDocument["presentation"],
+): FigureDocument["presentation"] {
+  const step = presentation.steps?.find(({ id }) => id === presentation.activeStep);
+  if (!step) return presentation;
+  const { activeStep: _activeStep, ...authored } = presentation;
+  return {
+    ...authored,
+    highlight: { components: [...step.highlight.components], nets: [...step.highlight.nets] },
+    annotations: {
+      nets: presentation.annotations?.nets ?? [],
+      legend: presentation.annotations?.legend ?? false,
+      caption: [presentation.annotations?.caption, `${step.title}: ${step.description}`.trim()]
+        .filter(Boolean)
+        .join(" "),
+    },
+  };
+}
+
+function schematicBounds(
+  scene: Scene,
+  theme: Theme,
+  measured: FigureBounds,
+  components: Set<string>,
+  nets: Set<string>,
+  annotated: Set<string>,
+): FigureBounds {
+  const bounds: FigureBounds = {
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
+    labels: Object.create(null),
+    symbols: Object.create(null),
+    routes: Object.create(null),
+  };
+  const netStroke = (net: string) => theme.strokeWidth * (nets.has(net) ? 1.5 : 1);
+  const add = (net: string, box: Box) => {
+    bounds.routes[net] ??= [];
+    bounds.routes[net].push(box);
+  };
+  const conductor = (net: string, points: Point[], stroke: number, butt: boolean) => {
+    for (let index = 1; index < points.length; index++) {
+      const a = points[index - 1];
+      const b = points[index];
+      if (!a || !b) continue;
+      const length = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const px = butt ? (length ? ((Math.abs(b[1] - a[1]) / length) * stroke) / 2 : 0) : stroke / 2;
+      const py = butt ? (length ? ((Math.abs(b[0] - a[0]) / length) * stroke) / 2 : 0) : stroke / 2;
+      add(net, {
+        x: Math.min(a[0], b[0]) - px,
+        y: Math.min(a[1], b[1]) - py,
+        width: Math.abs(b[0] - a[0]) + px * 2,
+        height: Math.abs(b[1] - a[1]) + py * 2,
+      });
+    }
+  };
+  for (const symbol of scene.symbols) {
+    const groundNet = scene.endpoints[symbol.id]?.net;
+    const stroke =
+      groundNet !== undefined && annotated.has(groundNet)
+        ? netStroke(groundNet)
+        : theme.strokeWidth * (components.has(symbol.id) ? 1.5 : 1);
+    bounds.symbols[symbol.id] = expand(symbol.box, stroke / 2);
+  }
+  for (const route of scene.routes) {
+    conductor(route.net, route.points, netStroke(route.net), false);
+    if (annotated.has(route.net))
+      conductor(route.net, route.points, annotationHaloWidth(theme), true);
+  }
+  for (const lead of scene.leads ?? []) {
+    const net = scene.endpoints[lead.endpoint]?.net;
+    if (net === undefined || !annotated.has(net)) continue;
+    conductor(net, lead.points, netStroke(net), true);
+    conductor(net, lead.points, annotationHaloWidth(theme), true);
+  }
+  for (const {
+    net,
+    point: [x, y],
+  } of scene.dots)
+    add(net, expand({ x, y, width: 0, height: 0 }, 4));
+  for (const {
+    net,
+    point: [x, y],
+  } of scene.terminals)
+    add(net, expand({ x, y, width: 0, height: 0 }, 4 + netStroke(net) / 2));
+  const sceneLabels = new Set(
+    scene.labels.filter(({ region }) => region === "scene").map(({ id }) => id),
+  );
+  for (const [id, box] of Object.entries(measured.labels))
+    if (sceneLabels.has(id) || (annotated.size > 0 && id.startsWith("annotation:")))
+      bounds.labels[id] = box;
+  const paint = [
+    ...Object.values(bounds.labels),
+    ...Object.values(bounds.symbols),
+    ...Object.values(bounds.routes).flat(),
+  ];
+  bounds.x = Math.min(...paint.map(({ x }) => x)) - 16;
+  bounds.y = Math.min(...paint.map(({ y }) => y)) - 16;
+  bounds.width = Math.max(...paint.map(({ x, width }) => x + width)) + 16 - bounds.x;
+  bounds.height = Math.max(...paint.map(({ y, height }) => y + height)) + 16 - bounds.y;
+  return bounds;
+}
+
+function compile(
+  authoredDocument: FigureDocument,
+  mode: "figure" | "schematic" | "annotated-schematic" = "figure",
+) {
+  const document = {
+    ...authoredDocument,
+    presentation: deriveStepPresentation(authoredDocument.presentation),
+  };
   const { theme, diagnostics } = resolveTheme(document);
   const scene = createScene(document);
   const frame = scene.frame ?? {
@@ -375,7 +486,7 @@ function compile(document: FigureDocument) {
             width: Math.abs(b[0] - a[0]),
             height: Math.abs(b[1] - a[1]),
           },
-          document.presentation.annotations ? annotationHaloWidth(theme) / 2 : padding,
+          authoredDocument.presentation.annotations ? annotationHaloWidth(theme) / 2 : padding,
         ),
       );
     }
@@ -443,9 +554,10 @@ function compile(document: FigureDocument) {
           fail(path, `Label overlaps net ${net}. Reduce fontScale or shorten IDs.`);
     }
     bounds.labels[label.id] = box;
-    labels.push(
-      `<g data-label="${escapeXML(label.id)}" fill="${theme[label.token]}">${text.svg}</g>`,
-    );
+    if (mode === "figure" || label.region === "scene")
+      labels.push(
+        `<g data-label="${escapeXML(label.id)}" fill="${theme[label.token]}">${text.svg}</g>`,
+      );
   }
   const ids = [
     ...Object.keys(document.circuit.components),
@@ -495,9 +607,10 @@ function compile(document: FigureDocument) {
         );
     }
   }
-  const resolved = resolveAnnotations(document, scene, theme, bounds, frame.sceneRegion);
-  if (resolved) diagnostics.push(...resolved.diagnostics);
+  const checkedAnnotations = resolveAnnotations(document, scene, theme, bounds, frame.sceneRegion);
+  if (checkedAnnotations) diagnostics.push(...checkedAnnotations.diagnostics);
   if (diagnostics.length) return { ok: false as const, diagnostics };
+  const resolved = mode === "schematic" ? undefined : checkedAnnotations;
   const highlightedComponents = new Set(document.presentation.highlight?.components);
   const highlightedNets = new Set(document.presentation.highlight?.nets);
   const annotationsByNet = new Map(
@@ -563,22 +676,50 @@ function compile(document: FigureDocument) {
     ...Object.entries(document.circuit.nets).map(
       ([id, endpoints]) => `${id}: ${endpoints.join(" connected to ")}`,
     ),
-    ...scene.labels.filter((label) => label.region === "footer").map((label) => label.text),
+    ...scene.labels
+      .filter((label) => mode === "figure" && label.region === "footer")
+      .map((label) => label.text),
     `Focus components: ${[...highlightedComponents].join(", ") || "none"}. Focus nets: ${[...highlightedNets].join(", ") || "none"}.`,
     ...(resolved
       ? [
           ...resolved.annotations.nets.map(
             ({ net, label, description }) => `${label} (${net}): ${description}`,
           ),
-          resolved.annotations.caption,
+          mode === "figure" ? resolved.annotations.caption : "",
         ].filter(Boolean)
       : []),
   ].join(". ");
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${frame.width} ${frame.height}" width="${frame.width}" height="${frame.height}" role="img" aria-label="${escapeXML(description)}"><title>${escapeXML(document.presentation.title)}</title><desc>${escapeXML(description)}</desc><g aria-hidden="true"><path d="M0 0H${frame.width}V${frame.height}H0Z" fill="${theme.background}"/><path d="M64 ${frame.headerBottom}H${frame.width - 64}M64 ${frame.footerTop}H${frame.width - 64}" fill="none" stroke="${theme.border}" stroke-width="1"/><g fill="none" stroke-linecap="round" stroke-linejoin="round">${halos}${wires}${symbols}${leads}${dots}${terminals}</g>${labels.join("")}${resolved?.labels ?? ""}</g></svg>`;
+  const viewport =
+    mode === "figure"
+      ? bounds
+      : schematicBounds(
+          scene,
+          theme,
+          bounds,
+          highlightedComponents,
+          highlightedNets,
+          new Set(annotationsByNet.keys()),
+        );
+  if (
+    ![viewport.x, viewport.y, viewport.width, viewport.height].every(Number.isFinite) ||
+    viewport.width <= 0 ||
+    viewport.height <= 0
+  ) {
+    fail(
+      "/layout",
+      "Painted schematic bounds must be finite and positive.",
+      "layout.invalid_bounds",
+    );
+    return { ok: false as const, diagnostics };
+  }
+  const svg =
+    mode !== "figure"
+      ? `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewport.x} ${viewport.y} ${viewport.width} ${viewport.height}" width="${viewport.width}" height="${viewport.height}" role="img" aria-label="${escapeXML(description)}"><title>${escapeXML(document.presentation.title)}</title><desc>${escapeXML(description)}</desc><g aria-hidden="true"><rect x="${viewport.x}" y="${viewport.y}" width="${viewport.width}" height="${viewport.height}" fill="${theme.background}"/><g fill="none" stroke-linecap="round" stroke-linejoin="round">${halos}${wires}${symbols}${leads}${dots}${terminals}</g>${labels.join("")}${resolved?.labels ?? ""}</g></svg>`
+      : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${frame.width} ${frame.height}" width="${frame.width}" height="${frame.height}" role="img" aria-label="${escapeXML(description)}"><title>${escapeXML(document.presentation.title)}</title><desc>${escapeXML(description)}</desc><g aria-hidden="true"><path d="M0 0H${frame.width}V${frame.height}H0Z" fill="${theme.background}"/><path d="M64 ${frame.headerBottom}H${frame.width - 64}M64 ${frame.footerTop}H${frame.width - 64}" fill="none" stroke="${theme.border}" stroke-width="1"/><g fill="none" stroke-linecap="round" stroke-linejoin="round">${halos}${wires}${symbols}${leads}${dots}${terminals}</g>${labels.join("")}${resolved?.labels ?? ""}</g></svg>`;
   return {
     ok: true as const,
     svg,
-    bounds,
+    bounds: viewport,
     endpoints: scene.endpoints,
     diagnostics,
     ...(resolved ? { annotations: resolved.annotations } : {}),
@@ -589,6 +730,46 @@ export function renderSVG(input: unknown): RenderResult {
   const validation = validateDocument(input);
   if (!validation.ok) return validation;
   const compiled = compile(validation.document);
+  if (!compiled.ok) return compiled;
+  return {
+    ok: true,
+    svg: compiled.svg,
+    diagnostics: [],
+    document: validation.document,
+    circuit: validation.document.circuit,
+    bounds: compiled.bounds,
+    ...(compiled.annotations ? { annotations: compiled.annotations } : {}),
+    rendererVersion,
+  };
+}
+
+export function renderSchematicSVG(
+  input: unknown,
+  options: { annotations?: boolean } = {},
+): RenderResult {
+  if (
+    options === null ||
+    typeof options !== "object" ||
+    Array.isArray(options) ||
+    Reflect.ownKeys(options).some((key) => key !== "annotations") ||
+    (options.annotations !== undefined && typeof options.annotations !== "boolean")
+  )
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "schematic.invalid_options",
+          path: "/options",
+          message: "Expected only annotations (boolean).",
+        },
+      ],
+    };
+  const validation = validateDocument(input);
+  if (!validation.ok) return validation;
+  const compiled = compile(
+    validation.document,
+    options.annotations ? "annotated-schematic" : "schematic",
+  );
   if (!compiled.ok) return compiled;
   return {
     ok: true,

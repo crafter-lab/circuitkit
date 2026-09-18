@@ -1,0 +1,46 @@
+.landing-presentation {
+  display: block;
+}
+
+.landing-presentation-intro {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 40px;
+  margin-bottom: 32px;
+}
+
+.presentation-source-example {
+  padding: 24px;
+  overflow: auto;
+  max-height: 420px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--syntax-background);
+  color: var(--syntax-text);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.presentation-source-example .ck-keyword {
+  color: var(--syntax-keyword);
+}
+
+.presentation-source-example .ck-string {
+  color: var(--syntax-string);
+}
+
+.presentation-source-example .ck-type {
+  color: var(--syntax-type);
+}
+
+.presentation-source-example .ck-identifier,
+.presentation-source-example .ck-port {
+  color: var(--syntax-function);
+}
+
+@media (max-width: 850px) {
+  .landing-presentation-intro {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+}
