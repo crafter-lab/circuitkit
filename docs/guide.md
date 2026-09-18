@@ -2,9 +2,31 @@
 
 Local, deterministic circuit SVGs from one versioned JSON document. The same renderer serves the CLI, Next.js editor, and optional React adapter. No account, backend, or generation service.
 
-CircuitKit source code is Apache-2.0 licensed. The package is named `circuitkit`, the CLI bin is `circuitkit`, and the optional React export is `circuitkit/react`. It is not published to npm; use a source checkout or a locally built tarball.
+CircuitKit is Apache-2.0 licensed. The public npm package is `circuitkit`, the CLI bin is `circuitkit`, and the optional React export is `circuitkit/react`. For new module diagrams start with `circuitkit skills get core --text`; this guide primarily documents the compatible legacy JSON recipes.
 
 Nine role-based topologies are supported: RC low-pass, unloaded and loaded dividers, LED series, two-stage RC ladder, Wheatstone bridge, filtered bridge rectifier, NPN low-side switch and inverting op-amp. Authors choose IDs, SI values, presentation, and focus, not coordinates. These are curated graphs, not an arbitrary autorouter or device simulator.
+
+## Install package
+
+Node.js 20 or newer:
+
+```sh
+npm install circuitkit
+npx circuitkit --version
+npx circuitkit skills get core --text
+```
+
+Bun projects can use `bun add circuitkit` and `bunx circuitkit`. Run `npx --yes circuitkit@latest` without a project install when appropriate. No global installation is required. The repository uses Bun for development; see Local development below.
+
+## Install skill
+
+From your project:
+
+```sh
+bunx skills add crafter-lab/circuitkit --skill circuitkit
+```
+
+Choose your agent when prompted. This is project-scoped without `--global`. Append `--list` to inspect available skills without installing. The [public skill](https://github.com/crafter-lab/circuitkit/blob/main/skills/circuitkit/SKILL.md) is a discovery stub: it explains how to obtain the CLI and read `circuitkit skills get core --text`. Operational instructions ship with the installed CLI version rather than a separately updated prompt.
 
 ## Gallery and stress tests
 
@@ -54,7 +76,7 @@ bun dist/cli.js schema --json
 bun dist/cli.js catalog --json
 bun dist/cli.js validate examples/rc-lowpass.json --json
 bun dist/cli.js inspect examples/rc-lowpass.json --json
-bun dist/cli.js render examples/rc-lowpass.json --out rc.svg --json
+bun dist/cli.js render examples/rc-lowpass.json --schematic --out rc.svg --json
 ```
 
 To create a local package artifact after building:
@@ -76,7 +98,7 @@ Inside a package script, `circuitkit` resolves through the package manager's bin
 
 ### Machine interface and file safety
 
-Commands are `schema`, `catalog`, `validate`, `inspect`, and `render`. Schema and catalog take no document. The other commands accept one JSON file path or `-` for piped stdin:
+Commands are `schema`, `catalog`, `validate`, `inspect`, `render`, and `markdown`. Schema and catalog take no document. Validate, inspect and render accept one JSON file path or `-` for piped stdin; `--block` explicitly selects Markdown input, while the `markdown` command processes all fences:
 
 ```sh
 cat examples/rc-lowpass.json | bun dist/cli.js render - --json
@@ -179,10 +201,10 @@ Presets are `geist-light`, `geist-dark`, and `geist-print`. Optional `presentati
 ## TypeScript and React
 
 ```ts
-import { defineFigure, loadExample, renderSVG } from "circuitkit";
+import { defineFigure, loadExample, renderSchematicSVG } from "circuitkit";
 
 const document = defineFigure(loadExample("rc-lowpass"));
-const result = renderSVG(document);
+const result = renderSchematicSVG(document);
 
 if (result.ok) {
   await Bun.write("figure.svg", result.svg);
@@ -196,12 +218,12 @@ Core accepts unknown runtime input. Successful rendering returns `ok: true`, `sv
 ```tsx
 "use client";
 
-import { CircuitFigure } from "circuitkit/react";
+import { CircuitSchematic } from "circuitkit/react";
 import type { FigureDocument } from "circuitkit";
 
 export function Lesson({ document }: { document: FigureDocument }) {
   return (
-    <CircuitFigure
+    <CircuitSchematic
       document={document}
       className="lesson-figure"
       onDiagnostics={(diagnostics) => console.log(diagnostics)}
@@ -210,7 +232,9 @@ export function Lesson({ document }: { document: FigureDocument }) {
 }
 ```
 
-The React 19 adapter accepts `document: FigureDocument | unknown`, optional `className`, and optional typed `onDiagnostics`. The host owns the document and must supply a new immutable object for edits. Rendering is memoized by document identity; the adapter keeps no second editable circuit. It inserts the exact core SVG without reconstructing paths or rewriting accessibility IDs. Invalid props remove the SVG and render a readable alert. The callback runs after commit, including empty diagnostics after recovery, not during server rendering. Use a stable callback for hosts that store diagnostics in state.
+The React 19 adapter accepts `document: FigureDocument | unknown`, optional `className`, and optional typed `onDiagnostics`. The host owns the document and must supply a new immutable object for edits. Rendering is memoized by document identity; the adapter keeps no second editable circuit. It inserts the exact core SVG without reconstructing paths or rewriting accessibility IDs. Invalid props remove the SVG and report diagnostics through the callback; the legacy `CircuitFigure` also renders a readable alert. The callback runs after commit, including empty diagnostics after recovery, not during server rendering. Use a stable callback for hosts that store diagnostics in state.
+
+`renderSchematicSVG` and `CircuitSchematic` render only the circuit, without a visible framing title, footer, caption, legend, or the space reserved for them. Accessible SVG metadata remains. The source document retains its teaching content for later editing. Use `renderSVG` / `CircuitFigure` for the legacy diagram presentation and `renderFigureSVG` for a complete lesson export.
 
 Size the wrapper or its direct SVG with host CSS if needed. Do not override SVG internals to create a second theme system. Figure typography is embedded as paths, independent of the surrounding UI font.
 
@@ -256,6 +280,8 @@ export function ExplainedCircuit({ document }: { document: FigureDocument }) {
 }
 ```
 
+`CircuitLessonFigure` defaults to compact interaction. Set `layout="expanded"` explicitly for the full lesson chrome. Keep downloads opt-in with `download`; the landing uses neither a download nor the expanded layout. Its default preview is `CircuitSchematic`, with an explicit Interactive switch and one external editor link that preserves saved selection and theme through the share codec, not hover/focus previews.
+
 The host owns selection. Hover/keyboard focus previews a net, leaving saved selection unchanged; click/Enter/tap requests selection through the callback. Escape and Show all request null. Without a callback the figure is explicitly read-only; without `activeNet`, it reads document highlight state. For `legend: false`, the host should provide its own keyboard selection controls. Multiple instances have independent IDs and state.
 
 `renderSVG(document)` still returns the diagram, now with optional colored conductors and inline labels. Its successful result carries resolved annotation metadata shared by the React legend. `renderFigureSVG(document)` returns the complete autonomous SVG with measured legend/caption paths. The wrapper download uses the persisted selection, never temporary hover. HTML legend typography can inherit the host font; exported SVG typography remains pinned Geist paths. Documents without annotations retain their original diagram bytes.
@@ -274,6 +300,53 @@ The JSON textarea is controlled. Every text change immediately removes the previ
 
 Download uses the actual current render result, and copy serializes its normalized document. Clipboard denial or unavailability is shown visibly with a manual-copy fallback message. Do not interpret a requested browser download as proof that the browser saved the file.
 
+## Share, Markdown and PNG
+
+The editor now authors net annotations and explanation steps, copies editable links and safe Markdown fences, and exports the complete SVG or PNG. Each exported figure includes its legend, caption and active-step explanation. The site theme never rewrites the authored figure theme. PNG scale is a local export option, 1 through 4, with a 16-megapixel cap. Clipboard denial falls back to a PNG download; browser download destinations remain browser-owned.
+
+Share URLs use `/editor#v=1&doc=...`, contain the complete document, and are limited to 16 KiB. They are not encrypted, stored remotely or usable as circuit-specific social previews by themselves. Invalid links show diagnostics instead of a fallback figure. The editor pauses preview and export during initial fragment inspection and whenever source or controls are invalid.
+
+Open `/markdown` to validate all `circuitkit` JSON fences and preview their full figures. The editor also accepts Markdown imports, requiring an explicit choice when there is more than one valid block. All blocks must validate. Limits are 1 MiB of Markdown, 32 blocks, 64 KiB per JSON block and 64 nesting levels. Prose, HTML and executable code are never rendered or executed by this adapter. A reader without CircuitKit support should use pre-rendered images instead of expecting a custom fence to render itself.
+
+```sh
+circuitkit render figure.json --schematic --format png --scale 2 --out figure.png --json
+circuitkit markdown lesson.md --json
+circuitkit render lesson.md --block 1 --figure --format png --out lesson.png --json
+```
+
+PNG requires `--out`; the JSON receipt contains the path, byte count and pixel dimensions, never raw binary. SVG remains the default format. The same atomic no-overwrite rules apply to both. `--block` uses one-based indexes and validates every Markdown block before selecting one.
+
+The package exposes separate entry points so a browser consumer does not import native PNG bindings:
+
+```ts
+import { renderPNG } from "circuitkit/png";
+import { parseCircuitMarkdown, renderCircuitMarkdown } from "circuitkit/markdown";
+import { encodeShareDocument, decodeShareDocument } from "circuitkit/share";
+
+const image = await renderPNG(document, { schematic: true, scale: 2 });
+const figures = renderCircuitMarkdown(markdownSource);
+const share = encodeShareDocument(document);
+```
+
+Use `{ schematic: true }` / `--schematic` for circuit-only PNG or SVG output. Use `{ figure: true }` / `--figure` explicitly for a complete lesson export instead.
+
+`renderPNG` runs on Node/Bun and returns PNG bytes only after checking output dimensions. It uses resvg-js with system font discovery disabled; SVG text is already embedded as paths. It is not the browser Canvas implementation. Cross-platform binary availability must be qualified on the target platform.
+
+## Authored explanation steps
+
+Optional `presentation.steps` contains at most 32 ordered entries with `id`, `title`, `description`, and `highlight: { components, nets }`. References must exist in the same circuit. Optional `presentation.activeStep` selects an existing ID. Omitting it restores the normal authored highlight. Neither steps nor selection change connectivity or component values.
+
+```tsx
+import { CircuitLessonSequence } from "circuitkit/react";
+import type { FigureDocument } from "circuitkit";
+
+export function StepByStep({ document }: { document: FigureDocument }) {
+  return <CircuitLessonSequence document={document} download />;
+}
+```
+
+The component supports Previous, Next, direct step selection and Show all, without timers or inferred current animation. For a host that persists progress across document changes, supply `activeStep` and `onActiveStepChange`; the callback receives both the ID (or null) and the canonical selected document to save/share. Invalid step rendering retains recovery controls. The `/lesson` page includes three optional sequences covering a divider, an RC filter and op-amp feedback, while retaining the original node-selection demonstrations. These examples are not a claim of deployment inside Gradual.
+
 ## Guarantees and boundaries
 
 - With a fixed renderer version, resources, and normalized document, rendering is deterministic, without timestamps or random IDs. CLI, React, and the playground share the renderer.
@@ -287,4 +360,4 @@ Download uses the actual current render result, and copy serializes its normaliz
 
 CircuitKit source code is licensed under [Apache-2.0](../LICENSE); see [NOTICE](../NOTICE) and [third-party licenses](../THIRD_PARTY_LICENSES.md). Bundled Geist fonts and their derived outlines retain the upstream SIL Open Font License in [fonts/OFL.txt](../fonts/OFL.txt), with [fonts/LICENSE.txt](../fonts/LICENSE.txt) also included. Third-party dependencies retain their own licenses.
 
-The root package intentionally keeps `private: true` to prevent accidental npm publication. That guard does not make the Apache-licensed source proprietary or restrict the permissions granted by its license. CircuitKit is not published to npm. The public source repository is https://github.com/crafter-lab/circuitkit. Local builds and tarballs do not require a registry release.
+The public npm package and Apache-2.0 source are both named CircuitKit. Source lives at https://github.com/crafter-lab/circuitkit. Releases are qualified as packed Node consumers before publication; local builds and tarballs remain useful for development.
