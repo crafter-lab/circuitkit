@@ -12,7 +12,14 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 
 if (process.argv.includes("--package")) {
-  await import("../artifacts/education-consumer/qualify-package.ts");
+  const qualifier = new URL("../artifacts/education-consumer/qualify-package.ts", import.meta.url);
+  if (!(await Bun.file(qualifier).exists())) {
+    throw new Error(
+      "This optional Gradual qualification requires the private education-consumer harness and corpus. Use scripts/verify-agent-package.mjs in an installed consumer for the portable package checks.",
+    );
+  }
+  process.argv.splice(process.argv.indexOf("--package"), 1);
+  await import(qualifier.href);
   process.exit(0);
 }
 

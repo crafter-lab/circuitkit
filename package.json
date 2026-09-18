@@ -118,7 +118,7 @@
     "brand:generate": "bun scripts/generate-brand-assets.ts",
     "build": "bun scripts/build.ts",
     "dev": "next dev --hostname 127.0.0.1",
-    "build:web": "next build",
+    "build:web": "bun scripts/build.ts --skip-fonts && next build",
     "start": "next start --hostname 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "bun test ./tests",
