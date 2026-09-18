@@ -5,10 +5,17 @@ export {
   formatSI,
   inspect,
   rendererVersion,
+  renderSchematicSVG,
   renderSVG,
   validate,
 } from "./renderer.ts";
-export type { FigureDocument, RecipeId, SemanticTone, ThemePreset } from "./schema.ts";
+export type {
+  FigureDocument,
+  RecipeId,
+  SemanticTone,
+  TeachingStep,
+  ThemePreset,
+} from "./schema.ts";
 export type {
   Box,
   Diagnostic,

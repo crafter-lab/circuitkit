@@ -267,7 +267,42 @@ export function validateDocument(input: unknown): DocumentValidationResult {
       }
     }
   }
+  const stepIds = new Set<string>();
+  for (const [stepIndex, step] of (document.presentation.steps ?? []).entries()) {
+    const path = ["presentation", "steps", stepIndex];
+    if (stepIds.has(step.id))
+      add(
+        "presentation.duplicate_step",
+        [...path, "id"],
+        `Duplicate step ID ${JSON.stringify(step.id)}.`,
+      );
+    stepIds.add(step.id);
+    for (const [kind, ids] of Object.entries(step.highlight)) {
+      const entities = kind === "components" ? components : nets;
+      for (const [index, id] of ids.entries()) {
+        if (!Object.hasOwn(entities, id))
+          add(
+            "presentation.unknown_highlight",
+            [...path, "highlight", kind, index],
+            `Unknown ${kind} highlight ${JSON.stringify(id)}. Valid IDs: ${Object.keys(entities).sort().join(", ")}.`,
+          );
+      }
+    }
+  }
+  if (
+    document.presentation.activeStep !== undefined &&
+    !stepIds.has(document.presentation.activeStep)
+  )
+    add(
+      "presentation.unknown_active_step",
+      ["presentation", "activeStep"],
+      `Unknown active step ${JSON.stringify(document.presentation.activeStep)}. Choose an existing step ID or omit activeStep.`,
+    );
   if (diagnostics.length > 0) return { ok: false, diagnostics };
+  for (const step of document.presentation.steps ?? []) {
+    step.highlight.components = [...new Set(step.highlight.components)].sort();
+    step.highlight.nets = [...new Set(step.highlight.nets)].sort();
+  }
   for (const endpoints of Object.values(nets)) endpoints.sort();
   if (highlight) {
     highlight.components = [...new Set(highlight.components)].sort();
