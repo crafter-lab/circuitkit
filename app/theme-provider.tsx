@@ -28,12 +28,14 @@ export function useSiteTheme() {
   return { theme: mounted && resolvedTheme === "dark" ? "dark" : "light", mounted } as const;
 }
 
-export function ThemeToggle() {
+export function ThemeToggle({ compact = false }: { compact?: boolean } = {}) {
   const { setTheme } = useTheme();
   const { theme, mounted } = useSiteTheme();
   return (
     <button
       className="theme-toggle"
+      data-compact={compact}
+      title="Toggle color theme"
       type="button"
       aria-label="Dark theme"
       aria-pressed={mounted && theme === "dark"}
@@ -41,7 +43,7 @@ export function ThemeToggle() {
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
     >
       <span aria-hidden="true">{theme === "dark" ? "◑" : "◐"}</span>
-      Dark theme
+      {!compact ? "Dark theme" : null}
     </button>
   );
 }

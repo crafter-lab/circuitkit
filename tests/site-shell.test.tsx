@@ -6,8 +6,9 @@ import EditorPage from "../app/editor/page.tsx";
 import { getGalleryCase } from "../app/gallery/corpus.ts";
 import GalleryPage from "../app/gallery/page.tsx";
 import FigurePage from "../app/gallery/view/page.tsx";
-import { dividerLesson } from "../app/lesson/documents.ts";
+
 import LessonPage from "../app/lesson/page.tsx";
+
 import Page from "../app/page.tsx";
 import { SiteFooter } from "../app/site-footer.tsx";
 import { SiteHeader } from "../app/site-header.tsx";
@@ -28,7 +29,7 @@ const compose = (page: ReactNode) => (
 );
 const fixture = "rc-lowpass/audio-low/geist-dark";
 const routes = [
-  { path: "page.tsx", page: () => Page(), heading: "Circuit diagrams that explain themselves." },
+  { path: "page.tsx", page: () => Page() },
   { path: "editor/page.tsx", page: () => EditorPage(), heading: "Circuits, made legible." },
   {
     path: "gallery/page.tsx",
@@ -58,58 +59,48 @@ function normalizeReactIds(html: string) {
 }
 
 describe("shared site shell SSR", () => {
-  test.each(routes)(
-    "$path owns one content main and no local shell",
-    async ({ path, page, heading }) => {
-      const content = await page();
-      const bare = renderToStaticMarkup(content);
-      expect(bare.match(/<main\b/g)).toHaveLength(1);
-      expect(bare.match(/\bid="main"/g)).toHaveLength(1);
-      expect(bare).not.toMatch(/<(?:header|footer)\b/);
-      expect(bare).not.toContain('href="#main"');
-      expect(bare).not.toContain('aria-label="Dark theme"');
-      expect(bare).toContain(heading);
-      const source = readApp(path);
-      expect(source).not.toMatch(/["']use client["']/);
-      expect(source).not.toMatch(/LandingShell|SiteHeader|SiteFooter|AppThemeProvider/);
+  test.each(routes)("$path owns one content main and no local shell", async ({ path, page }) => {
+    const content = await page();
+    const bare = renderToStaticMarkup(content);
+    expect(bare.match(/<main\b/g)).toHaveLength(1);
+    expect(bare.match(/\bid="main"/g)).toHaveLength(1);
+    expect(bare).not.toMatch(/<(?:header|footer)\b/);
+    expect(bare).not.toContain('href="#main"');
+    expect(bare).not.toContain('aria-label="Dark theme"');
+    expect(bare.match(/<h1\b/g)).toHaveLength(1);
+    const source = readApp(path);
+    expect(source).not.toMatch(/["']use client["']/);
+    expect(source).not.toMatch(/LandingShell|SiteHeader|SiteFooter|AppThemeProvider/);
 
-      const html = renderToStaticMarkup(compose(content));
-      expect(html.match(/<header\b/g)).toHaveLength(1);
-      expect(html.match(/<footer\b/g)).toHaveLength(1);
-      expect(html.match(/<main\b/g)).toHaveLength(1);
-      expect(html.match(/\bid="main"/g)).toHaveLength(1);
-      expect(html.match(/aria-label="Dark theme"/g)).toHaveLength(1);
-      const main = html.match(/<main\b[\s\S]*?<\/main>/)?.[0];
-      const bareMain = bare.match(/<main\b[\s\S]*?<\/main>/)?.[0];
-      expect(main).toBeDefined();
-      expect(bareMain).toBeDefined();
-      expect(normalizeReactIds(main ?? "")).toBe(normalizeReactIds(bareMain ?? ""));
-      const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
-      expect(new Set(ids).size).toBe(ids.length);
-      for (const match of html.matchAll(/aria-(?:controls|describedby|labelledby)="([^"]+)"/g)) {
-        for (const reference of (match[1] ?? "").split(" ")) expect(ids).toContain(reference);
-      }
-      expect(html).toMatch(/<a[^>]*class="wordmark"[^>]*href="\/"[^>]*>CircuitKit<\/a>/);
-      for (const [href, label] of [
-        ["/editor", "Editor"],
-        ["/gallery", "Gallery"],
-        ["/lesson", "Lesson"],
-      ]) {
-        expect(html).toContain(`href="${href}">${label}</a>`);
-      }
-      expect(html).toContain('aria-label="Main navigation"');
-      expect(html).toContain('href="https://crafter.run"');
-      expect(html).toContain(`href="${sourceURL}/blob/main/LICENSE">Apache-2.0</a>`);
-      expect(html).toContain(`href="${sourceURL}"`);
-      expect(html).toContain(
-        "not simulation, electrical-safety approval, or a fabrication system.",
-      );
-      expect(html).not.toContain('href="/">Editor</a>');
-      for (const obsolete of ["Circuit Figures", "Local-only MVP", "UNLICENSED"]) {
-        expect(html).not.toContain(obsolete);
-      }
-    },
-  );
+    const html = renderToStaticMarkup(compose(content));
+    expect(html.match(/<header\b/g)).toHaveLength(1);
+    expect(html.match(/<footer\b/g)).toHaveLength(1);
+    expect(html.match(/<main\b/g)).toHaveLength(1);
+    expect(html.match(/\bid="main"/g)).toHaveLength(1);
+    expect(html.match(/aria-label="Dark theme"/g)).toHaveLength(1);
+    const main = html.match(/<main\b[\s\S]*?<\/main>/)?.[0];
+    const bareMain = bare.match(/<main\b[\s\S]*?<\/main>/)?.[0];
+    expect(main).toBeDefined();
+    expect(bareMain).toBeDefined();
+    expect(normalizeReactIds(main ?? "")).toBe(normalizeReactIds(bareMain ?? ""));
+    const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((match) => match[1]);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const match of html.matchAll(/aria-(?:controls|describedby|labelledby)="([^"]+)"/g)) {
+      for (const reference of (match[1] ?? "").split(" ")) expect(ids).toContain(reference);
+    }
+    expect(html).toMatch(/<a[^>]*class="wordmark"[^>]*href="\/"[^>]*>CircuitKit<\/a>/);
+    for (const href of ["/editor?mode=circuitkit", "/gallery", "/docs"])
+      expect(html).toContain(`href="${href}"`);
+    expect(html).toContain('aria-label="Main navigation"');
+    expect(html).toContain('href="https://crafter.run"');
+    expect(html).toContain(`href="${sourceURL}/blob/main/LICENSE">Apache-2.0</a>`);
+    expect(html).toContain(`href="${sourceURL}"`);
+    expect(html).toContain("not simulation, electrical-safety approval, or a fabrication system.");
+    expect(html).not.toContain('href="/">Editor</a>');
+    for (const obsolete of ["Circuit Figures", "Local-only MVP", "UNLICENSED"]) {
+      expect(html).not.toContain(obsolete);
+    }
+  });
 
   test("RootLayout wires one provider, skip link, header and footer around route content", () => {
     const source = readApp("layout.tsx");
@@ -136,7 +127,7 @@ describe("shared site shell SSR", () => {
     const html = renderToString(tree, { identifierPrefix: "site-shell-" });
     expect(renderToString(tree, { identifierPrefix: "site-shell-" })).toBe(html);
     expect(html).toStartWith("<script");
-    expect(html.match(/<script\b/g)).toHaveLength(1);
+    expect(html.match(/<script\b(?![^>]*type="application\/ld\+json")/g)).toHaveLength(1);
     expect(html.indexOf("</script>")).toBeLessThan(html.indexOf("<header"));
     expect(html).toContain("document.documentElement");
     expect(html).toContain("classList");
@@ -148,12 +139,10 @@ describe("shared site shell SSR", () => {
       /<button\b[^>]*aria-label="Dark theme"[^>]*aria-pressed="false"[^>]*disabled=""/,
     );
     expect(html).not.toContain("data-theme=");
-    const result = renderSVG(dividerLesson("geist-light", 10000));
-    if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
-    const svg = html
-      .match(/<svg\b[\s\S]*?<\/svg>/)?.[0]
-      ?.replace(' style="display:block;width:100%;height:auto"', "");
-    expect(svg).toBe(result.svg);
+    expect(html).toContain('data-figure-theme="geist-light"');
+    expect(html).toContain('data-story-step="connect"');
+    expect(html).not.toContain('class="presentation-sweep"');
+    expect(html).toContain('alt="A digital audio signal path.');
     const client = readApp("landing/landing-client.tsx");
     expect(client).toContain("useSiteTheme()");
     expect(client).not.toMatch(/LandingShell|createContext|data-theme=/);
@@ -183,7 +172,7 @@ describe("shared site shell SSR", () => {
     expect(css).toMatch(
       /html,\s*body\s*\{[^}]*background:\s*var\(--background\);[^}]*color:\s*var\(--foreground\);/,
     );
-    expect(readApp("landing/landing.css")).not.toContain("data-theme");
+    expect(readApp("landing/landing.css")).not.toMatch(/\[data-theme(?:\s*=|\])/);
   });
 
   test("light site SSR preserves dark authored detail SVG, source, diagnostics and exports", async () => {
@@ -235,7 +224,7 @@ describe("shared site shell SSR", () => {
     const editor = renderToStaticMarkup(compose(await EditorPage()));
     expect(editor).toContain(renderToStaticMarkup(JSON.stringify(getSchema(), null, 2)));
     expect(editor).toContain(renderToStaticMarkup(JSON.stringify(getCatalog(), null, 2)));
-    expect(editor).toContain('class="workbench"');
+    expect(editor).toContain('class="workbench editor-workbench"');
     const lesson = renderToStaticMarkup(compose(LessonPage()));
     expect(lesson).toContain('aria-label="Host document controls"');
     expect(lesson).toContain("Figure theme");

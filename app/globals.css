@@ -169,7 +169,7 @@ button {
   font-weight: 500;
   overflow-wrap: anywhere;
 }
-button:hover:not(:disabled):not([aria-disabled="true"]) {
+:where(button:hover:not(:disabled):not([aria-disabled="true"])) {
   background: var(--accent);
 }
 button:disabled,
@@ -250,6 +250,15 @@ textarea[aria-invalid="true"] {
   letter-spacing: -0.6px;
   text-decoration: none;
 }
+.wordmark::before {
+  content: "";
+  width: 25px;
+  height: 27px;
+  margin-right: 9px;
+  flex: none;
+  background: currentColor;
+  mask: url("/brand-assets/mark-light.svg") center / contain no-repeat;
+}
 .site-lab {
   display: inline-flex;
   align-items: center;
@@ -296,6 +305,17 @@ textarea[aria-invalid="true"] {
 }
 .theme-toggle[aria-pressed="true"] {
   border-color: var(--foreground);
+}
+.theme-toggle[data-compact="true"] {
+  width: 32px;
+  padding-inline: 0;
+  border-color: transparent;
+  border-radius: 5px;
+  font-size: 18px;
+  background: transparent;
+}
+.theme-toggle[data-compact="true"]:hover {
+  background: var(--secondary);
 }
 .eyebrow,
 .status {
@@ -462,6 +482,44 @@ textarea[aria-invalid="true"] {
   background: var(--primary);
   text-decoration: underline;
   text-underline-offset: 4px;
+}
+.authoring-textarea {
+  min-height: 80px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.authoring-section {
+  min-width: 0;
+}
+.field input[type="checkbox"] {
+  width: 16px;
+  padding: 0;
+}
+.circuit-lesson-sequence {
+  min-width: 0;
+  margin-block: 24px;
+}
+.circuit-lesson-sequence-controls,
+.circuit-lesson-sequence-steps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-block: 12px;
+}
+.circuit-lesson-sequence-description {
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--secondary);
+  color: var(--secondary-foreground);
+}
+.circuit-lesson-sequence-description h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 500;
+}
+.circuit-lesson-sequence-description p {
+  margin: 0;
 }
 .workspace {
   min-width: 0;
@@ -786,8 +844,12 @@ textarea {
   visibility: hidden;
 }
 
-.circuit-lesson-figure button {
+.circuit-lesson-figure[data-layout="expanded"] button {
   border-radius: var(--radius) !important;
+}
+
+.circuit-lesson-figure[data-layout="compact"] {
+  --circuit-control-size: var(--control-height);
 }
 
 .app-shell .circuit-lesson-figure :focus-visible {
