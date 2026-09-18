@@ -718,7 +718,16 @@ describe("actual Node-driven stdin streams", () => {
     errorPrelude = join(temporary, "stdin-error.mjs");
     writeFileSync(
       errorPrelude,
-      `process.stdin.once("data", () => process.stdin.destroy(Object.assign(new Error("Injected read failure"), { code: "EIO" })));`,
+      `
+const input = process.stdin;
+function arm(event) {
+  if (event !== "error") return;
+  input.off("newListener", arm);
+  input.once("data", () => input.destroy(Object.assign(new Error("Injected read failure"), { code: "EIO" })));
+}
+input.on("newListener", arm);
+await new Promise(setImmediate);
+`,
     );
     driver = join(temporary, "node-pipe-driver.mjs");
     writeFileSync(
@@ -780,6 +789,7 @@ console.log(JSON.stringify(result));
     const result = JSON.parse(driverResult.stdout);
     expect(result.signal).toBeNull();
     expect(result.stdout).not.toContain(String.fromCharCode(27));
+    expect(result.stdout, result.stderr || `Node exited with ${result.status}`).not.toBe("");
     const body = JSON.parse(result.stdout);
     expect(Array.isArray(body.diagnostics)).toBe(true);
     expect(Array.isArray(body.nextSteps)).toBe(true);
