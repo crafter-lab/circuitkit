@@ -1,0 +1,60 @@
+{
+  "schema": "circuitkit.diagram.v1",
+  "id": "cueva",
+  "title": "USB-powered ESP32, OLED and audio",
+  "view": "schematic",
+  "modules": [
+    { "id": "USB", "label": "USB", "kind": "connector", "ports": ["power"] },
+    {
+      "id": "ESP32",
+      "label": "ESP32 Dev Board",
+      "kind": "controller",
+      "ports": ["USB", "3V3", "5V/VIN", "GND", "GPIO23", "GPIO22", "GPIO26", "GPIO25", "GPIO27"]
+    },
+    { "id": "OLED", "kind": "display", "ports": ["VCC", "GND", "SDA", "SCL"] },
+    {
+      "id": "MAX98357",
+      "kind": "amplifier",
+      "ports": ["VIN", "GND", "BCLK", "LRC/WS", "DIN", "SPK+", "SPK−"]
+    },
+    { "id": "Speaker", "kind": "speaker", "ports": ["+", "−"] }
+  ],
+  "connections": [
+    {
+      "from": "USB.power",
+      "to": "ESP32.USB",
+      "kind": "power",
+      "label": "USB module-level power",
+      "direction": "forward"
+    },
+    { "from": "ESP32.3V3", "to": "OLED.VCC", "kind": "power", "label": "3V3" },
+    { "from": "ESP32.GND", "to": "OLED.GND", "kind": "ground" },
+    { "from": "ESP32.GPIO23", "to": "OLED.SDA", "bus": "I2C", "label": "SDA", "direction": "both" },
+    { "from": "ESP32.GPIO22", "to": "OLED.SCL", "bus": "I2C", "label": "SCL", "direction": "both" },
+    { "from": "ESP32.5V/VIN", "to": "MAX98357.VIN", "kind": "power", "label": "5V/VIN" },
+    { "from": "ESP32.GND", "to": "MAX98357.GND", "kind": "ground" },
+    {
+      "from": "ESP32.GPIO26",
+      "to": "MAX98357.BCLK",
+      "bus": "I2S",
+      "label": "BCLK",
+      "direction": "forward"
+    },
+    {
+      "from": "ESP32.GPIO25",
+      "to": "MAX98357.LRC/WS",
+      "bus": "I2S",
+      "label": "LRC/WS",
+      "direction": "forward"
+    },
+    {
+      "from": "ESP32.GPIO27",
+      "to": "MAX98357.DIN",
+      "bus": "I2S",
+      "label": "DIN",
+      "direction": "forward"
+    },
+    { "from": "MAX98357.SPK+", "to": "Speaker.+", "kind": "audio", "direction": "forward" },
+    { "from": "MAX98357.SPK−", "to": "Speaker.−", "kind": "audio", "direction": "forward" }
+  ]
+}
