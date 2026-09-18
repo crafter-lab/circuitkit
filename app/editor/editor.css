@@ -1,0 +1,426 @@
+.editor-page .canvas-toolbar {
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+.editor-page .canvas-toolbar .history-controls {
+  display: flex;
+  gap: 6px;
+}
+.editor-page .canvas-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 12px;
+}
+.editor-page .canvas-toolbar select {
+  width: auto;
+  min-height: 34px;
+  padding: 4px 8px;
+}
+.editor-page .canvas-toolbar > span {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--muted-foreground);
+}
+.editor-page :where(.canvas-toolbar) button {
+  min-height: 34px;
+  border-radius: 6px;
+}
+.editor-page .editor-layout {
+  border-radius: 10px;
+  overflow: clip;
+}
+.editor-page .code-editor .cm-editor {
+  height: 470px;
+}
+@media (min-width: 1000px) {
+  .editor-page .editor-layout:has(#inspector-source:not([hidden])) {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 44%);
+  }
+}
+
+.editor-page .intro {
+  padding-block: 24px 16px;
+}
+
+.editor-page .intro h1 {
+  margin: 4px 0 8px;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.6px;
+}
+
+.editor-page .intro p {
+  font-size: 13px;
+}
+
+.editor-page .editor-origin {
+  margin-top: 8px;
+}
+
+.editor-page .editor-workbench {
+  display: block;
+  border: 0;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.editor-page .editor-toolbar {
+  display: grid;
+  grid-template-columns: minmax(160px, 1fr) auto auto;
+  align-items: end;
+  gap: 16px;
+  padding: 0 0 16px;
+}
+
+.editor-page .editor-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.editor-page .editor-view-field {
+  min-width: 160px;
+  margin: 0;
+}
+
+.editor-page .recipe-field {
+  max-width: 320px;
+  margin: 0;
+}
+
+.editor-page .field {
+  min-width: 0;
+  gap: 4px;
+}
+
+.editor-page .status {
+  display: flex;
+  align-items: center;
+  min-height: var(--control-height);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  text-transform: none;
+  color: var(--muted-foreground);
+}
+
+.editor-page .export-bar {
+  justify-content: flex-start;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+}
+
+.editor-page button {
+  padding-block: 4px;
+  line-height: 22px;
+}
+
+.editor-page .export-disclosure {
+  position: relative;
+  min-width: 0;
+}
+
+.editor-page .export-disclosure > summary {
+  min-height: var(--control-height);
+  padding: 4px 12px;
+  border: 1px solid var(--input);
+  background: var(--card);
+  color: var(--card-foreground);
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.editor-page .export-options {
+  position: absolute;
+  inset: calc(100% + 8px) 0 auto auto;
+  z-index: 5;
+  display: grid;
+  gap: 8px;
+  width: 256px;
+  max-width: calc(100vw - 64px);
+  padding: 16px;
+  border: 1px solid var(--border);
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--foreground) 8%, transparent);
+}
+
+.editor-page .export-options .field {
+  margin: 0;
+}
+
+.editor-page .export-options p {
+  max-width: none;
+}
+
+.editor-page .feedback {
+  min-height: 32px;
+  margin: 0;
+  padding-block: 4px;
+}
+
+.editor-page .editor-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: start;
+  border: 1px solid var(--border);
+}
+
+.editor-page .workspace {
+  min-width: 0;
+}
+
+.editor-page .figure-stage {
+  justify-content: safe center;
+  min-width: 0;
+  min-height: 0;
+  padding: 16px;
+  overflow: auto;
+  background: var(--muted);
+  color: var(--muted-foreground);
+}
+
+.editor-page .figure-output {
+  width: 100%;
+  max-width: 960px;
+  min-width: 560px;
+}
+
+.editor-page .figure-output-complex {
+  min-width: 900px;
+}
+
+.editor-page .empty-state {
+  padding: 24px 0;
+}
+
+.editor-page .empty-state h2 {
+  font-size: 20px;
+  letter-spacing: -0.4px;
+}
+
+.editor-page .editor-inspector {
+  min-width: 0;
+  align-self: stretch;
+  border-left: 1px solid var(--border);
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+.editor-page .inspector-switcher {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+  margin: 0;
+  padding: 8px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.editor-page .inspector-switcher label {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  font-size: 12px;
+  line-height: 22px;
+  background: var(--card);
+  color: var(--card-foreground);
+}
+
+.editor-page .inspector-switcher input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.editor-page .inspector-switcher label:has(:checked) {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.editor-page .inspector-switcher label:has(:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.editor-page .editor-inspector > section {
+  min-width: 0;
+  padding: 16px;
+}
+
+.editor-page [hidden] {
+  display: none;
+}
+
+.editor-page .control-section:first-child {
+  border: 0;
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.editor-page .control-section h2,
+.editor-page .section-heading h2 {
+  margin: 0 0 16px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--card-foreground);
+}
+
+.editor-page .chips {
+  gap: 4px;
+}
+
+.editor-page .override-row {
+  align-items: end;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.editor-page .override-row .field {
+  margin: 0;
+}
+
+.editor-page .override-row .reset {
+  margin: 0;
+  padding-inline: 8px;
+}
+
+.editor-page .inspector-disclosure {
+  min-width: 0;
+  margin-block: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.editor-page .inspector-disclosure > summary {
+  min-height: var(--control-height);
+  padding-block: 8px;
+  font-size: 12px;
+}
+
+.editor-page .inspector-disclosure:where([open]) > summary {
+  margin-bottom: 8px;
+}
+
+.editor-page .authoring-textarea {
+  min-height: 80px;
+  padding: 8px;
+}
+
+.editor-page .source-section {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+}
+
+.editor-page .section-heading {
+  align-items: start;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.editor-page .section-heading h2 {
+  margin: 4px 0 0;
+}
+
+.editor-page .source-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.editor-page #json-source {
+  min-width: 0;
+  max-width: 100%;
+  min-height: 360px;
+  padding: 8px;
+}
+
+.editor-page .diagnostics {
+  margin: 16px;
+  padding: 16px;
+  color: var(--foreground);
+}
+
+.editor-page .editor-reference {
+  margin-block: 24px;
+  border-block: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.editor-page .editor-reference > summary {
+  min-height: var(--control-height);
+  padding-block: 8px;
+}
+
+.editor-page .editor-reference p {
+  color: var(--muted-foreground);
+}
+
+@media (max-width: 960px) {
+  .editor-page .editor-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 12px;
+  }
+
+  .editor-page .export-bar {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 800px) {
+  .editor-page .editor-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .editor-page .editor-inspector {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .editor-page .figure-stage {
+    min-height: 0;
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .editor-page .editor-toolbar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .editor-page .recipe-field {
+    max-width: none;
+  }
+
+  .editor-page .export-disclosure {
+    flex-basis: 100%;
+  }
+
+  .editor-page .export-options {
+    position: static;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 8px;
+    box-shadow: none;
+  }
+}
