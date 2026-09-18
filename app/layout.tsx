@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import { SiteFooter } from "./site-footer.tsx";
@@ -29,7 +29,8 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "CircuitKit",
     title: "CircuitKit | Circuit diagrams for coding agents",
-    description: "Describe the modules and connections. Export blocks, wiring or schematics as SVG or PNG.",
+    description:
+      "Describe the modules and connections. Export blocks, wiring or schematics as SVG or PNG.",
     images: [
       {
         url: "/brand-assets/og-dark.png",
@@ -42,7 +43,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "CircuitKit | Circuit diagrams for coding agents",
-    description: "Describe the modules and connections. Export blocks, wiring or schematics as SVG or PNG.",
+    description:
+      "Describe the modules and connections. Export blocks, wiring or schematics as SVG or PNG.",
     images: ["/brand-assets/og-dark.png"],
   },
   icons: {
@@ -54,6 +56,13 @@ export const metadata: Metadata = {
     apple: [{ url: "/brand-assets/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
   manifest: "/brand-assets/site.webmanifest",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#141414" },
+  ],
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

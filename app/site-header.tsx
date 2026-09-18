@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { SiteLogo } from "./site-logo.tsx";
 import { ThemeToggle } from "./theme-provider.tsx";
 
 const navigation = [
@@ -14,8 +15,13 @@ export function SiteHeader() {
   const pathname = usePathname();
   return (
     <header className="site-header page-grid">
-      <Link className="wordmark" href="/" aria-current={pathname === "/" ? "page" : undefined}>
-        CircuitKit
+      <Link
+        className="wordmark"
+        href="/"
+        aria-label="CircuitKit home"
+        aria-current={pathname === "/" ? "page" : undefined}
+      >
+        <SiteLogo />
       </Link>
       <a className="site-lab" href="https://crafter.run">
         By Crafter Lab

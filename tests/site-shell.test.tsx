@@ -88,7 +88,11 @@ describe("shared site shell SSR", () => {
     for (const match of html.matchAll(/aria-(?:controls|describedby|labelledby)="([^"]+)"/g)) {
       for (const reference of (match[1] ?? "").split(" ")) expect(ids).toContain(reference);
     }
-    expect(html).toMatch(/<a[^>]*class="wordmark"[^>]*href="\/"[^>]*>CircuitKit<\/a>/);
+    const homeLink = html.match(/<a\b[^>]*class="wordmark"[^>]*>/)?.[0];
+    expect(homeLink).toContain('href="/"');
+    expect(homeLink).toContain('aria-label="CircuitKit home"');
+    expect(html).toContain('src="/brand-assets/logo-horizontal-light.svg"');
+    expect(html).toContain('src="/brand-assets/logo-horizontal-dark.svg"');
     for (const href of ["/editor?mode=circuitkit", "/gallery", "/docs"])
       expect(html).toContain(`href="${href}"`);
     expect(html).toContain('aria-label="Main navigation"');
@@ -126,7 +130,7 @@ describe("shared site shell SSR", () => {
     );
     const html = renderToString(tree, { identifierPrefix: "site-shell-" });
     expect(renderToString(tree, { identifierPrefix: "site-shell-" })).toBe(html);
-    expect(html).toStartWith("<script");
+    expect(html).toMatch(/^(?:<link\b[^>]*>)*<script/);
     expect(html.match(/<script\b(?![^>]*type="application\/ld\+json")/g)).toHaveLength(1);
     expect(html.indexOf("</script>")).toBeLessThan(html.indexOf("<header"));
     expect(html).toContain("document.documentElement");

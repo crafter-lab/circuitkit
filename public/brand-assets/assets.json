@@ -1,0 +1,383 @@
+{
+  "version": 1,
+  "name": "CircuitKit",
+  "palette": {
+    "ink": "#141414",
+    "paper": "#fafafa",
+    "white": "#ffffff",
+    "muted": "#6b6b6b"
+  },
+  "typography": [
+    "Geist Sans",
+    "Geist Mono"
+  ],
+  "source": "brand/mark.svg",
+  "generation": "bun run brand:generate",
+  "provenance": "Approved GPT Image 2 logo, vectorized locally; text outlined with bundled Geist.",
+  "assets": [
+    {
+      "file": "mark-light.svg",
+      "width": 320,
+      "height": 341,
+      "bytes": 3180,
+      "sha256": "adaf3735e3699704be89d28cabaad53085e24e4a82a435fd9410603a603322d3"
+    },
+    {
+      "file": "mark-light.png",
+      "width": 320,
+      "height": 341,
+      "bytes": 8150,
+      "sha256": "51b70341765e797573e71fc3900c56dcfe1f61e4eb7e3a78ef3c2b6d1c813707"
+    },
+    {
+      "file": "logo-horizontal-light.svg",
+      "width": 520,
+      "height": 104,
+      "bytes": 5859,
+      "sha256": "184815de423056015cdaacda3831daef354a2064383ee1423e260c55a4b6e99e"
+    },
+    {
+      "file": "logo-horizontal-light.png",
+      "width": 520,
+      "height": 104,
+      "bytes": 9441,
+      "sha256": "3bc59c550604169b146901b2009e2c92ab631981dc761d884485aca1eae9c3c2"
+    },
+    {
+      "file": "logo-stacked-light.svg",
+      "width": 640,
+      "height": 560,
+      "bytes": 6066,
+      "sha256": "aeb26f85326ae54116d8fe9078a9038924ae8c8eb5ac94ecbb30aee850559ca1"
+    },
+    {
+      "file": "logo-stacked-light.png",
+      "width": 640,
+      "height": 560,
+      "bytes": 18338,
+      "sha256": "66497ae52d9aa595aa0d58c42d9f8385a8efa1281a055bbe00d5c30cbd8d3b6e"
+    },
+    {
+      "file": "wordmark-light.svg",
+      "width": 420,
+      "height": 110,
+      "bytes": 2726,
+      "sha256": "ab3bdd6e16f33c6ebebd4a1dce28adab374fe7ddbfa9e99e7d8976ae6eb2a1b3"
+    },
+    {
+      "file": "wordmark-light.png",
+      "width": 420,
+      "height": 110,
+      "bytes": 8454,
+      "sha256": "a65f7b352a66c0ecf826c850a4827391320cce57a529c3052c5e0642e96d3bc7"
+    },
+    {
+      "file": "avatar-light.svg",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 3268,
+      "sha256": "73e75f10aaeeef99f0284dabedfaeae520f300691b09a556ac5ae04629962521"
+    },
+    {
+      "file": "avatar-light.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 21561,
+      "sha256": "bd5cc611f7fbd409e626c744bb62e69a9848d212a49b5c99b8453c9a335dbbf5"
+    },
+    {
+      "file": "og-light.svg",
+      "width": 1200,
+      "height": 630,
+      "bytes": 58777,
+      "sha256": "5a4ee0f4e3ac8a46ae2571fb9dfd07fe04da7cf5ca39dd0da0eb4cfbcb19623b"
+    },
+    {
+      "file": "og-light.png",
+      "width": 1200,
+      "height": 630,
+      "bytes": 41250,
+      "sha256": "7f382b61f7c5ffde35cb2a3a8129c8d184bd8dd2a8f43173f77c4ec7d8825837"
+    },
+    {
+      "file": "og-light.webp",
+      "width": 1200,
+      "height": 630,
+      "bytes": 12212,
+      "sha256": "91376e25d6cda362bfb15081f07f134ed930056052a5ffae571b286b4f3233dd"
+    },
+    {
+      "file": "mark-dark.svg",
+      "width": 320,
+      "height": 341,
+      "bytes": 3179,
+      "sha256": "744054e886a3a1734ded7c913cd8654c7bae6a8245a8030a5143521de063dc5d"
+    },
+    {
+      "file": "mark-dark.png",
+      "width": 320,
+      "height": 341,
+      "bytes": 8049,
+      "sha256": "c1b4013217d14605265c3d9f5afd49d94e996b7b979a71935c984abf33eb8837"
+    },
+    {
+      "file": "logo-horizontal-dark.svg",
+      "width": 520,
+      "height": 104,
+      "bytes": 5858,
+      "sha256": "b04bc0c6eba18f1d565bdad08eff09359d07b5c7cac1063ccfb0fe34aa57643d"
+    },
+    {
+      "file": "logo-horizontal-dark.png",
+      "width": 520,
+      "height": 104,
+      "bytes": 9370,
+      "sha256": "3391a51a30bf56babb462f07d64681dc682d91739cea30d9681c7d9761084ae1"
+    },
+    {
+      "file": "logo-stacked-dark.svg",
+      "width": 640,
+      "height": 560,
+      "bytes": 6065,
+      "sha256": "da4768f1184282e9430ed7101521ca71e2ec5dc4277055ec2864d121e4c05e82"
+    },
+    {
+      "file": "logo-stacked-dark.png",
+      "width": 640,
+      "height": 560,
+      "bytes": 17755,
+      "sha256": "5fe6f4d719a6eebfc54f5909ce1356f684cc1509d0501ec101c5fa7a007582d1"
+    },
+    {
+      "file": "wordmark-dark.svg",
+      "width": 420,
+      "height": 110,
+      "bytes": 2725,
+      "sha256": "585378201b1585cfd38c584e1d9bc0b7a85ac57d98ca16ca9fb1f3f1137e4148"
+    },
+    {
+      "file": "wordmark-dark.png",
+      "width": 420,
+      "height": 110,
+      "bytes": 8106,
+      "sha256": "5ed8d0c45e700c47b0fe3af23c15cd051382834e2a1258e75b31e86e5c95634e"
+    },
+    {
+      "file": "avatar-dark.svg",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 3267,
+      "sha256": "fbc8ac4f438b0f49163ce1fd34df722d812fbe9fc1f5f2c86841436a7ac794f8"
+    },
+    {
+      "file": "avatar-dark.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 21543,
+      "sha256": "7e528f09a5762fe83f623c9fff3f8d125cdc06ad225c9a671e439e7b9473359d"
+    },
+    {
+      "file": "og-dark.svg",
+      "width": 1200,
+      "height": 630,
+      "bytes": 58776,
+      "sha256": "142feef3e0bc0a73c785c461dc1a2a2fa5b8ce41515fe2bb0538ac75e2d37c26"
+    },
+    {
+      "file": "og-dark.png",
+      "width": 1200,
+      "height": 630,
+      "bytes": 40657,
+      "sha256": "5ebe2b8db743ff46d30f2167294c47a412cc451f2b7279fba3480426dfa79e51"
+    },
+    {
+      "file": "og-dark.webp",
+      "width": 1200,
+      "height": 630,
+      "bytes": 12238,
+      "sha256": "e6d92c0b83717b163e948ae0b21022a3c86086a47e04dd75841eb2c0e5693bb6"
+    },
+    {
+      "file": "github-social.svg",
+      "width": 1280,
+      "height": 640,
+      "bytes": 58815,
+      "sha256": "dbacc406faadb05c7e238d91d4ec4f73c1a0ed7f00a6a5b8107380cab9e99b8f"
+    },
+    {
+      "file": "github-social.png",
+      "width": 1280,
+      "height": 640,
+      "bytes": 42124,
+      "sha256": "80c35cae24089af7e6f4002c732994eb2e30c15b4775113365fb806747434fcb"
+    },
+    {
+      "file": "github-social.webp",
+      "width": 1280,
+      "height": 640,
+      "bytes": 12662,
+      "sha256": "596a30f02d1c638f31966f18b285ba2c960d52d535265d690bd4911ffa571bc4"
+    },
+    {
+      "file": "social-square.svg",
+      "width": 1080,
+      "height": 1080,
+      "bytes": 28423,
+      "sha256": "b5cb846e5036f425e4ccd3834b728b74ae6430e5f18e9e2ba1378c6c5377bcfa"
+    },
+    {
+      "file": "social-square.png",
+      "width": 1080,
+      "height": 1080,
+      "bytes": 48275,
+      "sha256": "3d54e48a884cafab1fe11d233d04d60df8bf9ca6e931a75913d3e23975da63e0"
+    },
+    {
+      "file": "social-square.webp",
+      "width": 1080,
+      "height": 1080,
+      "bytes": 13328,
+      "sha256": "f86b485e2fb1419a1a7e91360512f8c2f1f3310ebba12a0fc01178f12998d68f"
+    },
+    {
+      "file": "social-banner.svg",
+      "width": 1500,
+      "height": 500,
+      "bytes": 29177,
+      "sha256": "cf48cffe8d35d489e8869399eb8553029554328dc23d8bd454437d2e9f071259"
+    },
+    {
+      "file": "social-banner.png",
+      "width": 1500,
+      "height": 500,
+      "bytes": 34409,
+      "sha256": "1b42583ab6e565da739154003d33dd3407a8e069e11080231ff68f4f5cfe5bdc"
+    },
+    {
+      "file": "social-banner.webp",
+      "width": 1500,
+      "height": 500,
+      "bytes": 10306,
+      "sha256": "fbd0d15d191d5bd8e739c5a458eec94db0e663282a2f21cabb46b7b09dd1228a"
+    },
+    {
+      "file": "readme-banner.svg",
+      "width": 1600,
+      "height": 480,
+      "bytes": 32213,
+      "sha256": "b6ec753b59d0a2a5dd52be904a3279aed0559592be49958364cadd4cb52188e4"
+    },
+    {
+      "file": "readme-banner.png",
+      "width": 1600,
+      "height": 480,
+      "bytes": 34260,
+      "sha256": "e93d74e75fd7349a94317fe781d45c13b8c6e727f73a0b1f1f313dbb2273204d"
+    },
+    {
+      "file": "readme-banner.webp",
+      "width": 1600,
+      "height": 480,
+      "bytes": 9620,
+      "sha256": "bc35f02404b624fb1069def14bac4b810a1336df91df944b5500b070c2122a4d"
+    },
+    {
+      "file": "favicon-16.png",
+      "width": 16,
+      "height": 16,
+      "bytes": 330,
+      "sha256": "1efac4ba703ba134544b30b9640df3f676fe0542608ddde8348f7af8d8575d86"
+    },
+    {
+      "file": "favicon-32.png",
+      "width": 32,
+      "height": 32,
+      "bytes": 592,
+      "sha256": "0ff41ac2a33b5fca1f4f7d73eba4312936de18e747d55619b78b422193e71b99"
+    },
+    {
+      "file": "favicon-48.png",
+      "width": 48,
+      "height": 48,
+      "bytes": 814,
+      "sha256": "11efb6a16365cb8b05207d59ac9dcbcb8cdf5d4e0a8241838d29c24e7f268f9c"
+    },
+    {
+      "file": "favicon-64.png",
+      "width": 64,
+      "height": 64,
+      "bytes": 1053,
+      "sha256": "30e8ed6ce887065fe2485c191ae689f1e8aaef7ce0281916299d785b38705829"
+    },
+    {
+      "file": "icon-192.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 3030,
+      "sha256": "7e35b9db176c29f10b18f600a030de2f97ae6600112e90ea30e5579e698ab79e"
+    },
+    {
+      "file": "icon-512.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 9126,
+      "sha256": "435eb68ca1703988fb6d1db86475885a0d1b8d3ef99cc7e0f6d980174afc80d1"
+    },
+    {
+      "file": "icon-maskable-192.png",
+      "width": 192,
+      "height": 192,
+      "bytes": 2422,
+      "sha256": "9387a7734b429fb0d72f9409c1fdd24e7564c622a4c842bf5334f75f1e45322f"
+    },
+    {
+      "file": "icon-maskable-512.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 7393,
+      "sha256": "96bbcc734b4f76f73d1e0a4a5619dc3692a1aa506180a48956c4879b93908eeb"
+    },
+    {
+      "file": "apple-touch-icon.png",
+      "width": 180,
+      "height": 180,
+      "bytes": 2783,
+      "sha256": "c57430f094ded9ef836f2325abd0e343ccad02fb7b330cd8431307e4f48d4f9b"
+    },
+    {
+      "file": "favicon.svg",
+      "bytes": 3243,
+      "sha256": "316926d6235c8a53abedae6d281d09b52071f23e39ecf493608fa17007722641"
+    },
+    {
+      "file": "favicon.ico",
+      "bytes": 1790,
+      "sha256": "ce9bf5a6e0053d800305147fc2b294c29d62dd96a9d7c86fbe59c0f383736134"
+    },
+    {
+      "file": "site.webmanifest",
+      "bytes": 820,
+      "sha256": "daa3e22bda7afe5ac2ba77aa13c1afc846993a9333810a747ca8d5bdef2ec3b0"
+    },
+    {
+      "file": "Geist-Regular.ttf",
+      "bytes": 126048,
+      "sha256": "85a1c6b18a6b0a06dfe9fd4f6d6a5d4979f74ec861eaef4bc7868b5492b8a117"
+    },
+    {
+      "file": "GeistMono-Regular.ttf",
+      "bytes": 149284,
+      "sha256": "5a0de4b3d54ab272f76a1d8c84b7fb24c67bbec6591d5300e61c7bc10094b6c8"
+    },
+    {
+      "file": "OFL.txt",
+      "bytes": 4383,
+      "sha256": "c683bfbcc7e087f5d37a54ef628f10387c451a83ddc459b151403a164ac46c90"
+    },
+    {
+      "file": "README.txt",
+      "bytes": 494,
+      "sha256": "f63e4a3da614244ff95ef8981a126101e6a4b60d47734f0ba08f2cae5dd1df90"
+    }
+  ]
+}

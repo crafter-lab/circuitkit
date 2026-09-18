@@ -250,14 +250,29 @@ textarea[aria-invalid="true"] {
   letter-spacing: -0.6px;
   text-decoration: none;
 }
-.wordmark::before {
-  content: "";
-  width: 25px;
-  height: 27px;
-  margin-right: 9px;
+.site-logo {
+  display: inline-block;
+  width: 160px;
+  height: 32px;
   flex: none;
-  background: currentColor;
-  mask: url("/brand-assets/mark-light.svg") center / contain no-repeat;
+}
+.site-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.site-logo .site-logo-dark,
+:root.dark .site-logo-light {
+  display: none;
+}
+:root.dark .site-logo-dark {
+  display: block;
+}
+.site-footer-brand {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
 }
 .site-lab {
   display: inline-flex;
