@@ -1,0 +1,137 @@
+.ck-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.ck-tool:hover:not(:disabled),
+.ck-menu[open] > .ck-tool {
+  background: var(--secondary);
+}
+.ck-tool:focus-visible,
+.ck-menu-panel :focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.ck-icon-button {
+  width: 32px;
+  padding-inline: 0;
+}
+.ck-tool-text {
+  border-color: var(--border);
+}
+.ck-menu {
+  position: relative;
+  margin: 0;
+  flex: 0 0 auto;
+}
+.ck-menu > summary {
+  list-style: none;
+}
+.ck-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.ck-menu-panel {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto auto;
+  z-index: 40;
+  width: 258px;
+  max-width: calc(100vw - 40px);
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--popover);
+  color: var(--popover-foreground);
+  box-shadow: 0 8px 24px #00000012;
+  font-size: 12px;
+  text-align: left;
+}
+.ck-menu-panel > button,
+.ck-menu-panel > a {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 12px;
+  text-align: left;
+  text-decoration: none;
+}
+.ck-menu-panel > button:hover:not(:disabled),
+.ck-menu-panel > a:hover {
+  background: var(--secondary);
+}
+.ck-menu-panel label {
+  display: grid;
+  gap: 5px;
+  padding: 8px;
+  font-size: 12px;
+}
+.ck-menu-panel select,
+.ck-menu-panel input {
+  width: 100%;
+  min-width: 0;
+  font-size: 12px;
+}
+.ck-menu-panel p {
+  margin: 8px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ck-menu-panel hr {
+  margin: 6px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+.ck-segmented {
+  margin: 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.ck-segmented button {
+  min-height: 27px;
+  padding: 3px 9px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 20px;
+}
+.ck-segmented button[aria-pressed="true"] {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+.ck-segmented button:hover {
+  color: var(--foreground);
+}
+@media (pointer: coarse) {
+  .ck-tool,
+  .ck-segmented button {
+    min-height: 40px;
+  }
+  .ck-icon-button {
+    width: 40px;
+  }
+}

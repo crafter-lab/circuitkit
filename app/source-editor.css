@@ -1,0 +1,74 @@
+.code-editor {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: var(--syntax-background);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.code-editor-bar,
+.code-editor-status {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  background: var(--card);
+}
+.code-editor-bar {
+  border-bottom: 1px solid var(--line);
+}
+.code-editor-bar button {
+  min-height: 30px;
+  padding: 2px 8px;
+  font-size: 12px;
+}
+.code-editor-bar button[aria-pressed="true"] {
+  background: var(--muted);
+  color: var(--foreground);
+}
+.code-editor-status {
+  border-top: 1px solid var(--line);
+  font-size: 11px;
+}
+.code-editor textarea {
+  display: block;
+  width: 100%;
+  height: 440px;
+  min-height: 220px;
+  margin: 0;
+  padding: 16px;
+  border: 0;
+  background: var(--syntax-background);
+  color: var(--syntax-text);
+  font:
+    14px / 24px ui-monospace,
+    monospace;
+  resize: vertical;
+}
+.code-editor .cm-editor {
+  height: 440px;
+  min-height: 220px;
+}
+.code-editor .cm-scroller {
+  scrollbar-gutter: stable;
+}
+.code-editor .cm-content {
+  min-height: 100%;
+}
+.code-editor [hidden] {
+  display: none;
+}
+@media (max-width: 720px) {
+  .code-editor .cm-editor,
+  .code-editor textarea {
+    height: 350px;
+  }
+}
+@media (forced-colors: active) {
+  .code-editor {
+    border: 1px solid CanvasText;
+  }
+}

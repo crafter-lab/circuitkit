@@ -1,12 +1,14 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getCatalog, getSchema } from "../../src/index.ts";
 import { getGalleryCase } from "../gallery/corpus.ts";
 import Playground from "../playground.tsx";
-import "../gallery/gallery.css";
+import "./editor.css";
 
 export const metadata = {
   title: "Editor | CircuitKit",
-  description: "Edit a circuit document, inspect its nodes, and export portable SVG locally.",
+  description:
+    "Create, explain and share circuit figures. Edit JSON or Markdown and export SVG or PNG locally.",
 };
 
 export default async function EditorPage({
@@ -15,37 +17,52 @@ export default async function EditorPage({
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 } = {}) {
   const params = (await searchParams) ?? {};
+  if (params.mode === "circuitkit" && params.case === undefined) {
+    const { default: CircuitPage } = await import("./circuit-page.tsx");
+    return CircuitPage({
+      example: typeof params.example === "string" ? params.example : undefined,
+    });
+  }
   const entry = typeof params.case === "string" ? getGalleryCase(params.case) : undefined;
   if (params.case !== undefined && !entry) notFound();
   return (
-    <main id="main">
+    <main id="main" className="editor-page">
       <div className="intro">
-        <span className="eyebrow">A small instrument for clear ideas</span>
+        <span className="eyebrow">Circuit editor</span>
         <h1>Circuits, made legible.</h1>
-        <p>
-          {getCatalog().recipes.length} distinct circuit topologies. One editable document. Drawing,
-          not simulation.
+        <p>Choose a recipe, make it yours, export a figure. Drawing, not simulation.</p>
+        <p className="editor-origin">
+          <Link href="/editor?mode=circuitkit" prefetch={false}>
+            CircuitKit source, highlights & flow
+          </Link>
+          {" · "}
+          <Link href="/markdown" prefetch={false}>
+            Write modules & connections in Markdown →
+          </Link>
+          {" · "}
+          <Link href="/editor/education" prefetch={false}>
+            Education editor
+          </Link>
+          {" · "}
+          <Link href="/gallery/education" prefetch={false}>
+            Explore 12 typed panel families
+          </Link>
+          {" · Legacy recipes remain available below for compatibility."}
         </p>
         {entry ? (
           <p className="editor-origin">
             Editing a local copy of{" "}
-            <a href={`/gallery/view?case=${encodeURIComponent(entry.id)}`}>
+            <Link href={`/gallery/view?case=${encodeURIComponent(entry.id)}`} prefetch={false}>
               {entry.title} · {entry.preset}
-            </a>
+            </Link>
             . The gallery source is unchanged.
           </p>
         ) : null}
       </div>
       <Playground key={entry?.id ?? "default"} initialDocument={entry?.document} />
-      <section className="reference-section" aria-labelledby="reference-heading">
-        <div>
-          <span className="eyebrow">For authors & agents</span>
-          <h2 id="reference-heading">The public contract</h2>
-          <p>
-            Discover the same schema and catalog through the local CLI. No accounts or generation
-            service.
-          </p>
-        </div>
+      <details className="editor-reference">
+        <summary>The public contract</summary>
+        <p>Schema and catalog are also available through the local CLI. No account required.</p>
         <div className="reference-details">
           <details>
             <summary>Document JSON schema</summary>
@@ -56,7 +73,7 @@ export default async function EditorPage({
             <pre>{JSON.stringify(getCatalog(), null, 2)}</pre>
           </details>
         </div>
-      </section>
+      </details>
     </main>
   );
 }
