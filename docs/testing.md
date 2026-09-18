@@ -26,6 +26,16 @@ bun run check
 
 `bun run test` resolves the explicit `./tests` directory, rather than using a name filter that can collect third-party tests inside temporary artifacts. It includes the stress tests below. Use the output of the actual run for pass/fail status, test totals and assertions. Totals are mutable as coverage grows; a historical count is not an acceptance requirement. Keep failure output and the exit status rather than substituting an earlier green checkpoint.
 
+## Optional private Gradual qualification
+
+The default suite runs all public extractor, adapter, rendering and privacy tests without private files. Checks against the real Gradual corpus and its isolated consumer template are separate:
+
+```sh
+bun run test:gradual
+```
+
+This command sets `CIRCUITKIT_PRIVATE_CORPUS=1`. It requires the authorized local corpus under `artifacts/gradual-corpus/`, the original source referenced by its manifest, and the private template under `artifacts/education-consumer/template/`. Missing or invalid inputs fail the private run. Public CI does not possess those inputs and reports the private checks as skipped, not passed. Never copy them into the repository or substitute synthetic fixtures as proof of real-corpus qualification.
+
 ## Deterministic stress corpus
 
 ```sh

@@ -38,7 +38,10 @@ import {
 import { debounceEvents, signalEvents } from "../src/v2/signals.ts";
 
 const root = resolve(import.meta.dir, "../artifacts/gradual-corpus");
-const manifest = JSON.parse(await readFile(resolve(root, "manifest.json"), "utf8")) as Manifest;
+const privateCorpus = process.env.CIRCUITKIT_PRIVATE_CORPUS === "1";
+const manifest: Manifest | null = privateCorpus
+  ? JSON.parse(await readFile(resolve(root, "manifest.json"), "utf8"))
+  : null;
 const adapt = (input: unknown, stage: Stage = "teaching"): GradualAdapted => {
   const result = adaptGradualFigure(input, { stage });
   if (!result.ok) throw new Error(JSON.stringify(result.diagnostics));
@@ -135,47 +138,51 @@ describe("family annotation ink layout", () => {
     expect(text("supply", "figure/terminal-label/C").at).toEqual({ x: 168, y: 175 });
   });
 
-  test("all corpus layouts preserve topology, label text, font size, paints and semantic identities", () => {
-    for (const exact of manifest.exactFigures) {
-      const a = adapt(exact.figure);
-      const projected = projectFigure(author(a), "teaching");
-      if (!projected.ok) throw new Error(`Core rejected ${exact.id}`);
-      const raw = {
-        ...projected.document,
-        display: [...projected.document.display, ...(a.host.additions ?? [])],
-      };
-      const before = JSON.stringify(raw);
-      const placed = layoutGradualAnnotations(raw, a.model);
-      const solids = (doc: typeof placed) =>
-        doc.display.flatMap((part) =>
-          part.shapes
-            .filter((shape) => shape.kind !== "math")
-            .map((shape) => ({ id: part.id, shape })),
-        );
-      const labels = (doc: typeof placed) =>
-        doc.display.flatMap((part) =>
-          part.shapes.flatMap((shape) =>
-            shape.kind === "math"
-              ? [
-                  {
-                    id: part.id,
-                    runs: shape.runs,
-                    size: shape.size,
-                    family: shape.family,
-                    tone: shape.tone,
-                  },
-                ]
-              : [],
-          ),
-        );
-      expect(solids(placed), exact.id).toEqual(solids(raw));
-      expect(labels(placed), exact.id).toEqual(labels(raw));
-      expect(placed.targets).toEqual(raw.targets);
-      expect(placed.display.map((part) => part.id)).toEqual(raw.display.map((part) => part.id));
-      expect(JSON.stringify(raw)).toBe(before);
-      expect(layoutGradualAnnotations(placed, a.model)).toEqual(placed);
-    }
-  });
+  test.skipIf(!privateCorpus)(
+    "all corpus layouts preserve topology, label text, font size, paints and semantic identities",
+    () => {
+      if (!manifest) throw new Error("The private Gradual manifest is required");
+      for (const exact of manifest.exactFigures) {
+        const a = adapt(exact.figure);
+        const projected = projectFigure(author(a), "teaching");
+        if (!projected.ok) throw new Error(`Core rejected ${exact.id}`);
+        const raw = {
+          ...projected.document,
+          display: [...projected.document.display, ...(a.host.additions ?? [])],
+        };
+        const before = JSON.stringify(raw);
+        const placed = layoutGradualAnnotations(raw, a.model);
+        const solids = (doc: typeof placed) =>
+          doc.display.flatMap((part) =>
+            part.shapes
+              .filter((shape) => shape.kind !== "math")
+              .map((shape) => ({ id: part.id, shape })),
+          );
+        const labels = (doc: typeof placed) =>
+          doc.display.flatMap((part) =>
+            part.shapes.flatMap((shape) =>
+              shape.kind === "math"
+                ? [
+                    {
+                      id: part.id,
+                      runs: shape.runs,
+                      size: shape.size,
+                      family: shape.family,
+                      tone: shape.tone,
+                    },
+                  ]
+                : [],
+            ),
+          );
+        expect(solids(placed), exact.id).toEqual(solids(raw));
+        expect(labels(placed), exact.id).toEqual(labels(raw));
+        expect(placed.targets).toEqual(raw.targets);
+        expect(placed.display.map((part) => part.id)).toEqual(raw.display.map((part) => part.id));
+        expect(JSON.stringify(raw)).toBe(before);
+        expect(layoutGradualAnnotations(placed, a.model)).toEqual(placed);
+      }
+    },
+  );
 
   test("collision checks detect diagonal strokes, opaque dots and enclosing painted regions", () => {
     const a = adapt({
@@ -474,6 +481,10 @@ describe("review regressions", () => {
 });
 
 describe("real Gradual corpus", () => {
+  if (!manifest) {
+    test.skip("requires CIRCUITKIT_PRIVATE_CORPUS=1 and the local corpus", () => {});
+    return;
+  }
   test("the attested manifest includes every occurrence, exact figure, pair and null host", () => {
     expect(manifest.occurrences).toHaveLength(652);
     expect(manifest.exactFigures).toHaveLength(344);

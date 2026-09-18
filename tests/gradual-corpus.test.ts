@@ -353,167 +353,174 @@ describe("deterministic extractor fixtures", () => {
   });
 });
 
-describe("real Gradual corpus, not replaceable by fixtures", () => {
-  let result: Awaited<ReturnType<typeof generateCorpus>>;
-  let recorded: ReturnType<typeof extractCorpus> & {
-    snapshot: ReturnType<typeof snapshotMetadata> & { metadata: string };
-  };
-  beforeAll(async () => {
-    const raw = await readFile(join(output, "manifest.json"), "utf8").catch(() => {
-      throw new Error(
-        "Generate the real manifest first with --source /absolute/path/to/gradual. Real corpus tests are mandatory and never skipped.",
+describe.skipIf(process.env.CIRCUITKIT_PRIVATE_CORPUS !== "1")(
+  "real Gradual corpus, not replaceable by fixtures",
+  () => {
+    let result: Awaited<ReturnType<typeof generateCorpus>>;
+    let recorded: ReturnType<typeof extractCorpus> & {
+      snapshot: ReturnType<typeof snapshotMetadata> & { metadata: string };
+    };
+    beforeAll(async () => {
+      const raw = await readFile(join(output, "manifest.json"), "utf8").catch(() => {
+        throw new Error(
+          "Generate the real manifest first with --source /absolute/path/to/gradual. The explicitly requested private corpus qualification cannot run without it.",
+        );
+      });
+      recorded = JSON.parse(raw);
+      result = await generateCorpus(recorded.source.sourceDir);
+    });
+
+    test("attested real revision, source bytes, closure and every planned baseline count match", () => {
+      expect(result.input.revision).toBe(BASELINE_REVISION);
+      expect(result.input.sourceHash).toBe(recorded.source.sourceHash);
+      expect(result.manifest.counts).toEqual(BASELINE_COUNTS);
+      expect(recorded.counts).toEqual(BASELINE_COUNTS);
+      expect(
+        result.manifest.scope.lessonIds.filter(
+          (id) => !id.startsWith("hw.") && !id.startsWith("dc."),
+        ),
+      ).toEqual(["math.rearrange", "re.experiment", "re.observation"]);
+      expect(result.manifest.hostFoundations).toHaveLength(10);
+      expect(
+        result.manifest.hostFoundations.every(
+          (h) => h.diagram === "none" && h.rendered === "null" && h.compatible === false,
+        ),
+      ).toBe(true);
+    });
+
+    test("revision and same-count source-content drift fail without source mutation", async () => {
+      await expect(
+        generateCorpus(result.input.sourceDir, { expectedRevision: "0".repeat(40) }),
+      ).rejects.toThrow("Source revision drift");
+      await expect(
+        generateCorpus(result.input.sourceDir, { expectedSourceHash: "0".repeat(64) }),
+      ).rejects.toThrow("Source content drift");
+      const changed = new Map(result.input.files);
+      changed.set("course/graph/catalog.ts", `${changed.get("course/graph/catalog.ts")}\n`);
+      expect(() => auditPureModules(changed)).toThrow("re-audit");
+    });
+
+    test("all stages, IDs, pairings, source hashes and source JSON/property paths are retained", () => {
+      const manifest = result.manifest;
+      expect(new Set(manifest.occurrences.map((o) => o.caseId)).size).toBe(652);
+      expect(new Set(manifest.occurrences.map((o) => o.exactFigureId)).size).toBe(344);
+      expect(new Set(manifest.questionSolutionPairs.map((p) => p.pairId)).size).toBe(
+        manifest.questionSolutionPairs.length,
+      );
+      for (const occurrence of manifest.occurrences) {
+        expect(occurrence.source.sourceHash).toBe(result.input.sourceHash);
+        expect(occurrence.source.revision).toBe(BASELINE_REVISION);
+        expect(occurrence.source.fileHash).toBe(
+          sha256(result.input.files.get(occurrence.source.file) ?? ""),
+        );
+        expect(occurrence.source.propertyPath.startsWith("/")).toBe(true);
+        expect(
+          manifest.exactFigures.find((f) => f.id === occurrence.exactFigureId)?.occurrenceIds,
+        ).toContain(occurrence.caseId);
+        if (occurrence.stage === "solution") {
+          expect(occurrence.context.solution).toBeDefined();
+          expect(occurrence.context.question).toBeDefined();
+          expect(
+            manifest.questionSolutionPairs.find((p) => p.pairId === occurrence.pairId)
+              ?.solutionCaseIds,
+          ).toContain(occurrence.caseId);
+        }
+        if (occurrence.lessonId.startsWith("dc.") && occurrence.surface === "graph")
+          expect(
+            occurrence.source.derivationSites.some((s) =>
+              s.file.startsWith("course/units/dc-circuit/"),
+            ),
+          ).toBe(true);
+      }
+      expect(manifest.coverageMatrix.stages.every((s) => s.occurrences > 0)).toBe(true);
+      expect(manifest.families.some((f) => f.family === "positional")).toBe(false);
+      expect(manifest.scope.excludedFigureSlots.some((f) => f.family === "positional")).toBe(true);
+      expect(manifest.scope.exclusions.some((e) => e.reason === "draft-not-compatible")).toBe(true);
+      expect(manifest.scope.exclusions.some((e) => e.reason === "planned-not-compatible")).toBe(
+        true,
       );
     });
-    recorded = JSON.parse(raw);
-    result = await generateCorpus(recorded.source.sourceDir);
-  });
 
-  test("attested real revision, source bytes, closure and every planned baseline count match", () => {
-    expect(result.input.revision).toBe(BASELINE_REVISION);
-    expect(result.input.sourceHash).toBe(recorded.source.sourceHash);
-    expect(result.manifest.counts).toEqual(BASELINE_COUNTS);
-    expect(recorded.counts).toEqual(BASELINE_COUNTS);
-    expect(
-      result.manifest.scope.lessonIds.filter(
-        (id) => !id.startsWith("hw.") && !id.startsWith("dc."),
-      ),
-    ).toEqual(["math.rearrange", "re.experiment", "re.observation"]);
-    expect(result.manifest.hostFoundations).toHaveLength(10);
-    expect(
-      result.manifest.hostFoundations.every(
-        (h) => h.diagram === "none" && h.rendered === "null" && h.compatible === false,
-      ),
-    ).toBe(true);
-  });
-
-  test("revision and same-count source-content drift fail without source mutation", async () => {
-    await expect(
-      generateCorpus(result.input.sourceDir, { expectedRevision: "0".repeat(40) }),
-    ).rejects.toThrow("Source revision drift");
-    await expect(
-      generateCorpus(result.input.sourceDir, { expectedSourceHash: "0".repeat(64) }),
-    ).rejects.toThrow("Source content drift");
-    const changed = new Map(result.input.files);
-    changed.set("course/graph/catalog.ts", `${changed.get("course/graph/catalog.ts")}\n`);
-    expect(() => auditPureModules(changed)).toThrow("re-audit");
-  });
-
-  test("all stages, IDs, pairings, source hashes and source JSON/property paths are retained", () => {
-    const manifest = result.manifest;
-    expect(new Set(manifest.occurrences.map((o) => o.caseId)).size).toBe(652);
-    expect(new Set(manifest.occurrences.map((o) => o.exactFigureId)).size).toBe(344);
-    expect(new Set(manifest.questionSolutionPairs.map((p) => p.pairId)).size).toBe(
-      manifest.questionSolutionPairs.length,
-    );
-    for (const occurrence of manifest.occurrences) {
-      expect(occurrence.source.sourceHash).toBe(result.input.sourceHash);
-      expect(occurrence.source.revision).toBe(BASELINE_REVISION);
-      expect(occurrence.source.fileHash).toBe(
-        sha256(result.input.files.get(occurrence.source.file) ?? ""),
+    test("repeated materialization yields byte-identical manifests and semantic buckets do not merge exact figures", async () => {
+      const second = await generateCorpus(result.input.sourceDir);
+      expect(canonical(second.manifest)).toBe(canonical(result.manifest));
+      expect(canonical(recorded.occurrences)).toBe(canonical(result.manifest.occurrences));
+      const semantic = new Set(result.manifest.exactFigures.map((f) => f.semanticSignature));
+      expect(semantic.size).toBeLessThan(344);
+      expect(result.manifest.exactFigures.reduce((n, f) => n + f.occurrenceIds.length, 0)).toBe(
+        652,
       );
-      expect(occurrence.source.propertyPath.startsWith("/")).toBe(true);
-      expect(
-        manifest.exactFigures.find((f) => f.id === occurrence.exactFigureId)?.occurrenceIds,
-      ).toContain(occurrence.caseId);
-      if (occurrence.stage === "solution") {
-        expect(occurrence.context.solution).toBeDefined();
-        expect(occurrence.context.question).toBeDefined();
-        expect(
-          manifest.questionSolutionPairs.find((p) => p.pairId === occurrence.pairId)
-            ?.solutionCaseIds,
-        ).toContain(occurrence.caseId);
+    });
+
+    test("snapshot has complete local renderer imports, read-only verified bytes and local-only licensing", async () => {
+      const metadata = snapshotMetadata(result.input);
+      expect(metadata.distribution).toBe("local-only-not-bundled");
+      expect(metadata.license).toContain("unknown");
+      const { metadata: _metadataPath, ...savedMetadata } = recorded.snapshot;
+      expect(metadata).toEqual(savedMetadata);
+      const local = new Set(metadata.files.map((f) => f.path.slice("source/".length)));
+      for (const item of metadata.imports)
+        if (!item.external) expect(local.has(item.resolved)).toBe(true);
+      for (const file of metadata.files) {
+        const path = join(output, "snapshot", file.path);
+        expect(sha256(await readFile(path))).toBe(file.sha256);
+        expect((await lstat(path)).mode & 0o222).toBe(0);
+        expect(file.path).not.toMatch(
+          /(?:^|\/)(?:sessions|progress|uploads|node_modules|\.env)(?:\/|$)/,
+        );
+        expect(file.path).not.toContain("store.ts");
+        expect(file.path).not.toBe("source/app/units/[unitId]/page.tsx");
       }
-      if (occurrence.lessonId.startsWith("dc.") && occurrence.surface === "graph")
-        expect(
-          occurrence.source.derivationSites.some((s) =>
-            s.file.startsWith("course/units/dc-circuit/"),
-          ),
-        ).toBe(true);
-    }
-    expect(manifest.coverageMatrix.stages.every((s) => s.occurrences > 0)).toBe(true);
-    expect(manifest.families.some((f) => f.family === "positional")).toBe(false);
-    expect(manifest.scope.excludedFigureSlots.some((f) => f.family === "positional")).toBe(true);
-    expect(manifest.scope.exclusions.some((e) => e.reason === "draft-not-compatible")).toBe(true);
-    expect(manifest.scope.exclusions.some((e) => e.reason === "planned-not-compatible")).toBe(true);
-  });
-
-  test("repeated materialization yields byte-identical manifests and semantic buckets do not merge exact figures", async () => {
-    const second = await generateCorpus(result.input.sourceDir);
-    expect(canonical(second.manifest)).toBe(canonical(result.manifest));
-    expect(canonical(recorded.occurrences)).toBe(canonical(result.manifest.occurrences));
-    const semantic = new Set(result.manifest.exactFigures.map((f) => f.semanticSignature));
-    expect(semantic.size).toBeLessThan(344);
-    expect(result.manifest.exactFigures.reduce((n, f) => n + f.occurrenceIds.length, 0)).toBe(652);
-  });
-
-  test("snapshot has complete local renderer imports, read-only verified bytes and local-only licensing", async () => {
-    const metadata = snapshotMetadata(result.input);
-    expect(metadata.distribution).toBe("local-only-not-bundled");
-    expect(metadata.license).toContain("unknown");
-    const { metadata: _metadataPath, ...savedMetadata } = recorded.snapshot;
-    expect(metadata).toEqual(savedMetadata);
-    const local = new Set(metadata.files.map((f) => f.path.slice("source/".length)));
-    for (const item of metadata.imports)
-      if (!item.external) expect(local.has(item.resolved)).toBe(true);
-    for (const file of metadata.files) {
-      const path = join(output, "snapshot", file.path);
-      expect(sha256(await readFile(path))).toBe(file.sha256);
-      expect((await lstat(path)).mode & 0o222).toBe(0);
-      expect(file.path).not.toMatch(
-        /(?:^|\/)(?:sessions|progress|uploads|node_modules|\.env)(?:\/|$)/,
+      expect(sha256(await readFile(join(output, "snapshot/inline-figures.json")))).toBe(
+        sha256(`${canonical(result.input.inline)}\n`),
       );
-      expect(file.path).not.toContain("store.ts");
-      expect(file.path).not.toBe("source/app/units/[unitId]/page.tsx");
-    }
-    expect(sha256(await readFile(join(output, "snapshot/inline-figures.json")))).toBe(
-      sha256(`${canonical(result.input.inline)}\n`),
-    );
-  });
+    });
 
-  test("artifact root is ignored and neither fixtures nor source answers enter published file allowlist", async () => {
-    expect(
-      execFileSync("git", ["check-ignore", "artifacts/gradual-corpus/manifest.json"], {
-        cwd: root,
-        encoding: "utf8",
-      }).trim(),
-    ).toBe("artifacts/gradual-corpus/manifest.json");
-    const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as {
-      files: string[];
-    };
-    expect(
-      pkg.files.some(
-        (path) =>
-          path.startsWith("artifacts") ||
-          path.startsWith("tests") ||
-          path.startsWith("scripts/extract-gradual"),
-      ),
-    ).toBe(false);
-  });
+    test("artifact root is ignored and neither fixtures nor source answers enter published file allowlist", async () => {
+      expect(
+        execFileSync("git", ["check-ignore", "artifacts/gradual-corpus/manifest.json"], {
+          cwd: root,
+          encoding: "utf8",
+        }).trim(),
+      ).toBe("artifacts/gradual-corpus/manifest.json");
+      const pkg = JSON.parse(await readFile(join(root, "package.json"), "utf8")) as {
+        files: string[];
+      };
+      expect(
+        pkg.files.some(
+          (path) =>
+            path.startsWith("artifacts") ||
+            path.startsWith("tests") ||
+            path.startsWith("scripts/extract-gradual"),
+        ),
+      ).toBe(false);
+    });
 
-  test("output symlink escape is rejected before creating nested directories", async () => {
-    const testRoot = join(output, "safety-test");
-    await mkdir(testRoot, { recursive: true });
-    const target = join(testRoot, "target");
-    await mkdir(target, { recursive: true });
-    await symlink(target, join(testRoot, "alias"));
-    try {
-      await expect(writeCorpus(join(testRoot, "alias/forbidden"), result)).rejects.toThrow(
-        "Symlink",
-      );
-      expect(await readdir(target)).toEqual([]);
-    } finally {
-      await rm(join(testRoot, "alias"));
-      await rm(target, { recursive: true });
-      await rm(testRoot, { recursive: true });
-    }
-  });
+    test("output symlink escape is rejected before creating nested directories", async () => {
+      const testRoot = join(output, "safety-test");
+      await mkdir(testRoot, { recursive: true });
+      const target = join(testRoot, "target");
+      await mkdir(target, { recursive: true });
+      await symlink(target, join(testRoot, "alias"));
+      try {
+        await expect(writeCorpus(join(testRoot, "alias/forbidden"), result)).rejects.toThrow(
+          "Symlink",
+        );
+        expect(await readdir(target)).toEqual([]);
+      } finally {
+        await rm(join(testRoot, "alias"));
+        await rm(target, { recursive: true });
+        await rm(testRoot, { recursive: true });
+      }
+    });
 
-  test("regeneration writes identical bytes and does not mutate source or snapshot", async () => {
-    const manifestPath = join(output, "manifest.json");
-    const before = await readFile(manifestPath, "utf8");
-    await writeCorpus(output, result);
-    expect(await readFile(manifestPath, "utf8")).toBe(before);
-    for (const file of result.input.sourceFiles)
-      expect(sha256(await readFile(join(result.input.sourceDir, file.path)))).toBe(file.sha256);
-  });
-});
+    test("regeneration writes identical bytes and does not mutate source or snapshot", async () => {
+      const manifestPath = join(output, "manifest.json");
+      const before = await readFile(manifestPath, "utf8");
+      await writeCorpus(output, result);
+      expect(await readFile(manifestPath, "utf8")).toBe(before);
+      for (const file of result.input.sourceFiles)
+        expect(sha256(await readFile(join(result.input.sourceDir, file.path)))).toBe(file.sha256);
+    });
+  },
+);

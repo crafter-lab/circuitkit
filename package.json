@@ -126,7 +126,7 @@
     "test:language": "bun test tests/language*.test.ts",
     "measure:language": "bun scripts/measure-language.ts",
     "test:education": "bun test tests/v2-*.test.ts tests/v2-react.test.tsx tests/education-cli.test.ts tests/education-examples.test.ts tests/education-web.test.tsx tests/package-education-build.test.ts",
-    "test:gradual": "bun test tests/gradual-corpus.test.ts tests/gradual-adapter.test.ts tests/education-consumer.test.ts",
+    "test:gradual": "CIRCUITKIT_PRIVATE_CORPUS=1 bun test ./tests/gradual-corpus.test.ts ./tests/gradual-adapter.test.ts ./tests/education-consumer.test.ts",
     "extract:gradual": "bun --no-env-file scripts/extract-gradual.ts",
     "check:gradual": "bun --no-env-file scripts/check-gradual-coverage.ts",
     "check": "biome check ."
