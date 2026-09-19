@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getCatalog, renderSVG } from "../../../src/index.ts";
+import { getCatalog, renderSchematicSVG } from "../../../src/index.ts";
 import { getGalleryCase, getGalleryCases } from "../corpus.ts";
 import "../gallery.css";
 
@@ -13,7 +13,7 @@ export default async function FigurePage({
   const params = (await searchParams) ?? {};
   const entry = getGalleryCase(typeof params.case === "string" ? params.case : "");
   if (!entry) notFound();
-  const result = renderSVG(entry.document);
+  const result = renderSchematicSVG(entry.document);
   const catalog = getCatalog();
   const recipe = catalog.recipes.find(({ id }) => id === entry.recipe);
   const nets = result.ok ? Object.entries(result.circuit.nets) : [];

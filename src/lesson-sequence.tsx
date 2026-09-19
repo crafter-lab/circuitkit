@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { CircuitLessonFigure } from "./lesson-figure.tsx";
-import { renderSVG } from "./renderer.ts";
+import {
+  renderSchematicSVG,
+  renderSVG,
+  resolveSchematicComposition,
+  type SchematicComposition,
+} from "./renderer.ts";
 import type { FigureDocument } from "./schema.ts";
 import type { Diagnostic, RenderResult } from "./types.ts";
 import { validateDocument } from "./validation.ts";
@@ -14,12 +19,45 @@ export interface CircuitLessonSequenceProps {
   className?: string;
   onDiagnostics?: (diagnostics: Diagnostic[]) => void;
   download?: boolean;
+  composition?: SchematicComposition;
 }
 
-export function resolveLessonSequence(document: unknown, activeStep?: string | null): RenderResult {
+export interface ResolveLessonSequenceOptions {
+  composition?: SchematicComposition;
+}
+
+export function resolveLessonSequence(
+  document: unknown,
+  activeStep?: string | null,
+  options: ResolveLessonSequenceOptions = {},
+): RenderResult {
+  if (
+    options === null ||
+    typeof options !== "object" ||
+    Array.isArray(options) ||
+    Reflect.ownKeys(options).some((key) => key !== "composition") ||
+    (options.composition !== undefined &&
+      options.composition !== "classic" &&
+      options.composition !== "compact")
+  )
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "lesson.invalid_options",
+          path: "/options",
+          message: 'Expected only composition ("classic" or "compact").',
+        },
+      ],
+    };
   const result = validateDocument(document);
   if (!result.ok) return result;
-  if (activeStep === undefined) return renderSVG(result.document);
+  const composition = resolveSchematicComposition(result.document, options.composition);
+  const render =
+    composition === "compact"
+      ? (input: unknown) => renderSchematicSVG(input, { annotations: true, composition })
+      : renderSVG;
+  if (activeStep === undefined) return render(result.document);
   if (
     activeStep !== null &&
     !result.document.presentation.steps?.some(({ id }) => id === activeStep)
@@ -36,7 +74,7 @@ export function resolveLessonSequence(document: unknown, activeStep?: string | n
     };
   }
   const { activeStep: _activeStep, ...presentation } = result.document.presentation;
-  return renderSVG({
+  return render({
     ...result.document,
     presentation: { ...presentation, ...(activeStep === null ? {} : { activeStep }) },
   });
@@ -49,6 +87,7 @@ export function CircuitLessonSequence({
   className,
   onDiagnostics,
   download = false,
+  composition,
 }: CircuitLessonSequenceProps) {
   const id = useId();
   const figureId = `${id}-figure`;
@@ -62,7 +101,10 @@ export function CircuitLessonSequence({
   const reset = !Object.is(selection.document, document) || selection.controlled !== controlled;
   if (reset) setSelection({ document, controlled, activeStep: undefined });
   const selectedId = controlled ? activeStep : reset ? undefined : selection.activeStep;
-  const result = useMemo(() => resolveLessonSequence(document, selectedId), [document, selectedId]);
+  const result = useMemo(
+    () => resolveLessonSequence(document, selectedId, { composition }),
+    [document, selectedId, composition],
+  );
   const [rejected, setRejected] = useState<{
     result: RenderResult;
     diagnostics: Diagnostic[];
@@ -99,12 +141,12 @@ export function CircuitLessonSequence({
     }
   }, [diagnostics, onDiagnostics]);
   const recovery = useMemo(
-    () => (result.ok ? null : resolveLessonSequence(document, null)),
-    [document, result],
+    () => (result.ok ? null : resolveLessonSequence(document, null, { composition })),
+    [document, result, composition],
   );
   const interactive = !controlled || Boolean(onActiveStepChange);
   const request = (next: string | null) => {
-    const candidate = resolveLessonSequence(document, next);
+    const candidate = resolveLessonSequence(document, next, { composition });
     if (!candidate.ok) {
       setRejected({ result, diagnostics: candidate.diagnostics });
       return;
@@ -226,6 +268,7 @@ export function CircuitLessonSequence({
         <CircuitLessonFigure
           document={result.document}
           layout="compact"
+          composition={composition}
           notes={false}
           showDescription={false}
           download={download}

@@ -8,7 +8,7 @@ import { GET as figureGET } from "../app/gallery/figure/route.ts";
 import GalleryPage from "../app/gallery/page.tsx";
 import FigurePage from "../app/gallery/view/page.tsx";
 import Playground from "../app/playground.tsx";
-import { getCatalog, loadExample, renderSVG } from "../src/index.ts";
+import { getCatalog, loadExample, renderSchematicSVG as renderSVG } from "../src/index.ts";
 import { basicRecipeIds, complexRecipeIds as complexIds, type RecipeId } from "../src/schema.ts";
 
 const request = (route: "figure" | "document", id?: string, download = false) => {

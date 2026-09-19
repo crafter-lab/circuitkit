@@ -26,10 +26,13 @@ describe("CircuitSchematic minimal adapter", () => {
       const markup = renderToStaticMarkup(
         <CircuitSchematic document={document} className="minimal" />,
       );
-      expect(
-        inlineSVG(markup)?.replace(' style="display:block;max-width:100%;height:auto"', ""),
-      ).toBe(result.svg);
-      expect(markup).toStartWith('<div class="minimal" style="min-width:0;max-width:100%">');
+      const compact = ["rc-lowpass", "inverting-amplifier", "bridge-rectifier"].includes(recipe);
+      const svgStyle = `display:block;max-width:100%;height:auto${compact ? `;min-width:${result.bounds.width * 0.75}px` : ""}`;
+      expect(inlineSVG(markup)?.replace(` style="${svgStyle}"`, "")).toBe(result.svg);
+      expect(markup).toStartWith(
+        `<div class="minimal" style="min-width:0;max-width:100%${compact ? ";overflow-x:auto" : ""}">`,
+      );
+      if (compact) expect(markup).toContain(`min-width:${result.bounds.width * 0.75}px`);
       expect(markup).not.toMatch(/<button|<figcaption|<p\b|<details|<dl\b/);
       expect(markup).not.toContain("padding:");
       expect(markup).not.toContain("min-height:");

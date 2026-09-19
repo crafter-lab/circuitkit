@@ -15,7 +15,9 @@ if (!result.ok) {
 }
 ```
 
-The exact signature is `renderSchematicSVG(input: unknown, options?: { annotations?: boolean }): RenderResult`. The input remains the existing version-1 `FigureDocument`; no new document schema or layout recipe is introduced.
+The signature is `renderSchematicSVG(input: unknown, options?: SchematicOptions): SchematicRenderResult`, where options accept `annotations?: boolean` and `composition?: "classic" | "compact"`. The input remains the existing version-1 `FigureDocument`. Omitted composition selects compact automatically for RC low-pass, inverting amplifier and bridge rectifier; the other six recipes keep their supported existing layout. No flag is needed. Explicit `classic` is retained only for compatibility. Explicit `compact` on an unsupported recipe returns `schematic.unsupported_composition`.
+
+`renderSchematicSVG(document, { composition: "compact" })` changes placement without changing the document, components, values, terminals or connectivity. Successful schematic results populate `endpoints` in their own SVG userspace; `inspect(document)` still describes classic geometry. `CircuitSchematic`, `CircuitLessonFigure` and `CircuitLessonSequence` accept the same optional `composition` prop. Their compact diagrams scroll locally below 75% userspace scale instead of shrinking text indefinitely. See [the compact composition contract, evidence and next increments](compact-composition.md) in the source repository.
 
 Default output includes wires, component symbols, component IDs and values, port labels, junctions, terminals and selected component/net highlights. There are no visible title, subtitle, formula, assumption, header/footer rules, caption, legend or inline annotation badges. The title remains escaped accessibility metadata. A theme-colored background covers the cropped viewport, without a decorative frame.
 
@@ -29,13 +31,13 @@ Use `CircuitSchematic` from `circuitkit/react` for a bare, responsive circuit wi
 
 ## Geometry and validation
 
-Compilation selects paint before SVG serialization. This is not CSS hiding, post-render SVG stripping, or a scaled-down lesson page. The scene is not relaid out: the viewport is cropped to its painted union plus 16 SVG user units on each side. Bounds account for symbol strokes, highlighted wire strokes, junctions, terminal strokes, pin leads, enabled halos and visible measured text. Caption and legend layout never enlarge the schematic viewport.
+Compilation selects paint before SVG serialization. This is not CSS hiding, post-render SVG stripping, or a scaled-down lesson page. The resolved composition selects its bounded recipe placement first. In both cases the viewport is cropped to its painted union plus 16 SVG user units on each side. Bounds account for symbol strokes, highlighted wire strokes, junctions, terminal strokes, pin leads, enabled halos and visible measured text. Caption and legend layout never enlarge the schematic viewport.
 
-`bounds.x`, `bounds.y`, `bounds.width` and `bounds.height` match the SVG `viewBox`. The origin can be nonzero. Symbol/route/label bounds, inline annotation paths and segments, and the endpoint coordinates returned by the existing `inspect` API all use the original scene userspace. Do not subtract the viewport origin from some geometry but not others. For pointer interactions, convert client coordinates with the SVG screen transformation matrix rather than assuming a zero origin. Schematic route bounds also cover painted junctions, terminals and annotated leads/halos.
+`bounds.x`, `bounds.y`, `bounds.width` and `bounds.height` match the SVG `viewBox`. The origin can be nonzero. Symbol/route/label bounds, inline annotation paths and segments, and the schematic result's `endpoints` all use that rendered scene's userspace. The legacy `inspect` API describes the old framed layout, not the default compact geometry. Do not subtract the viewport origin from some geometry but not others. For pointer interactions, convert client coordinates with the SVG screen transformation matrix rather than assuming a zero origin. Schematic route bounds also cover painted junctions, terminals and annotated leads/halos.
 
 The renderer preserves the canonical document and circuit returned by the existing validator, including authored annotations and teaching steps. It does not mutate input, repair graphs, drop invalid references, or rewrite authored state. The selected teaching step still determines highlights; step prose is not painted.
 
-Validation remains deliberately as strict as the existing renderer, including geometry and text checks for hidden editorial content and annotations. Omitting annotation paint is not a way to bypass unknown/duplicate net references, unsupported glyphs, XML controls, tone contrast, annotation placement or unbreakable legend/caption text diagnostics. Oversized hidden titles can therefore still fail existing layout checks. Schema, topology, themes, scene label collisions, symbol gaps and finite derived values are checked as before. Invalid input returns diagnostics and no SVG. Invalid options, including unknown keys or a nonboolean `annotations`, return `schematic.invalid_options` at `/options`.
+Validation remains deliberately as strict as the existing renderer, including geometry and text checks for hidden editorial content and annotations. Omitting annotation paint is not a way to bypass unknown/duplicate net references, unsupported glyphs, XML controls, tone contrast, annotation placement or unbreakable legend/caption text diagnostics. Oversized hidden titles can therefore still fail existing layout checks. Schema, topology, themes, scene label collisions, symbol gaps and finite derived values are checked as before. Invalid input returns diagnostics and no SVG. Invalid options, including unknown keys, a nonboolean `annotations`, or a composition other than `classic`/`compact`, return `schematic.invalid_options` at `/options`.
 
 ## PNG
 
@@ -45,7 +47,7 @@ import { renderPNG } from "circuitkit/png";
 const result = await renderPNG(document, { schematic: true, scale: 2 });
 ```
 
-PNG uses the same minimal SVG API and cropped viewport, with no inline annotations. Dimensions are `ceil(bounds.width * scale)` and `ceil(bounds.height * scale)`. Scale remains an integer from 1 through 4, with the existing 16,000,000-pixel limit checked before native rasterization. `figure: true` and `schematic: true` together return `png.invalid_options`. Native dependencies remain isolated from the browser core.
+PNG uses the same minimal SVG API and cropped viewport, with no inline annotations. With `schematic: true`, composition uses the same automatic default as SVG. Composition without schematic mode is invalid. Dimensions are `ceil(bounds.width * scale)` and `ceil(bounds.height * scale)`. Scale remains an integer from 1 through 4, with the existing 16,000,000-pixel limit checked before native rasterization. `figure: true` and `schematic: true` together return `png.invalid_options`. Native dependencies remain isolated from the browser core.
 
 ## CLI
 
@@ -55,7 +57,7 @@ circuitkit render examples/rc-lowpass.json --schematic --format png --scale 2 --
 circuitkit render lesson.md --block 2 --schematic --out circuit.svg --json
 ```
 
-`--schematic` is render-only and mutually exclusive with `--figure`. It supports JSON files, piped JSON and the existing explicit Markdown `--block` selection. All Markdown blocks validate before selection. SVG can be returned in memory without `--out`; PNG requires `--out` and never emits binary stdout. Existing atomic writes, refusal to replace without `--overwrite`, JSON envelopes and exit codes remain unchanged: 0 success, 1 invalid input/document, 2 usage or IO failure.
+`--schematic` is render-only and mutually exclusive with `--figure`. No composition flag is needed: the three compact recipes are selected automatically. `--composition classic` is an explicit compatibility escape hatch, not a visible web mode. The option requires `render --schematic` and works with SVG, PNG, stdin and a selected legacy Markdown block. It supports JSON files, piped JSON and the existing explicit Markdown `--block` selection. All Markdown blocks validate before selection. SVG can be returned in memory without `--out`; PNG requires `--out` and never emits binary stdout. Existing atomic writes, refusal to replace without `--overwrite`, JSON envelopes and exit codes remain unchanged: 0 success, 1 invalid input/document, 2 usage or IO failure.
 
 ## Compatibility and scope
 

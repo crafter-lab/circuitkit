@@ -11,9 +11,16 @@ import {
 } from "react";
 import { CompactLegend } from "./compact-legend.tsx";
 import { renderFigureSVG } from "./figure-svg.ts";
-import { deriveStepPresentation, renderSchematicSVG, renderSVG } from "./renderer.ts";
+import {
+  deriveStepPresentation,
+  renderSchematicSVG,
+  renderSVG,
+  resolveSchematicComposition,
+  type SchematicComposition,
+} from "./renderer.ts";
 import { resolveTheme } from "./theme.ts";
 import type { Diagnostic, RenderResult, ResolvedNetAnnotation } from "./types.ts";
+import { validateDocument } from "./validation.ts";
 
 export interface CircuitLessonFigureProps {
   document: unknown;
@@ -23,12 +30,41 @@ export interface CircuitLessonFigureProps {
   onDiagnostics?: (diagnostics: Diagnostic[]) => void;
   download?: boolean;
   layout?: "compact" | "expanded";
+  composition?: SchematicComposition;
   notes?: boolean;
   showDescription?: boolean;
 }
 
 export interface ResolveLessonFigureOptions {
   layout?: "compact" | "expanded";
+  composition?: SchematicComposition;
+}
+
+function validateLessonFigureOptions(options: ResolveLessonFigureOptions): RenderResult | null {
+  if (
+    options === null ||
+    typeof options !== "object" ||
+    Array.isArray(options) ||
+    Reflect.ownKeys(options).some((key) => key !== "layout" && key !== "composition") ||
+    (options.layout !== undefined &&
+      options.layout !== "compact" &&
+      options.layout !== "expanded") ||
+    (options.composition !== undefined &&
+      options.composition !== "classic" &&
+      options.composition !== "compact")
+  )
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "lesson.invalid_options",
+          path: "/options",
+          message:
+            'Expected only layout ("compact" or "expanded") and composition ("classic" or "compact").',
+        },
+      ],
+    };
+  return null;
 }
 
 export function resolveLessonFigure(
@@ -36,11 +72,16 @@ export function resolveLessonFigure(
   activeNet?: string | null,
   options: ResolveLessonFigureOptions = {},
 ): RenderResult {
+  const invalid = validateLessonFigureOptions(options);
+  if (invalid) return invalid;
+  const validation = validateDocument(document);
+  if (!validation.ok) return validation;
+  const composition = resolveSchematicComposition(validation.document, options.composition);
   const render =
-    options.layout === "compact"
-      ? (input: unknown) => renderSchematicSVG(input, { annotations: true })
+    options.layout === "compact" || composition === "compact"
+      ? (input: unknown) => renderSchematicSVG(input, { annotations: true, composition })
       : renderSVG;
-  const result = render(document);
+  const result = render(validation.document);
   if (!result.ok || activeNet === undefined) return result;
   if (activeNet !== null && !Object.hasOwn(result.circuit.nets, activeNet)) {
     return {
@@ -74,9 +115,12 @@ export function exportLessonFigure(
   persisted: RenderResult,
   options: ResolveLessonFigureOptions = {},
 ): RenderResult {
+  const invalid = validateLessonFigureOptions(options);
+  if (invalid) return invalid;
   if (!persisted.ok) return persisted;
-  return options.layout === "compact"
-    ? renderSchematicSVG(persisted.document, { annotations: true })
+  const composition = resolveSchematicComposition(persisted.document, options.composition);
+  return options.layout === "compact" || composition === "compact"
+    ? renderSchematicSVG(persisted.document, { annotations: true, composition })
     : renderFigureSVG(persisted.document);
 }
 
@@ -128,6 +172,7 @@ export function CircuitLessonFigure({
   onDiagnostics,
   download = false,
   layout = "compact",
+  composition,
   notes = true,
   showDescription = true,
 }: CircuitLessonFigureProps) {
@@ -137,8 +182,8 @@ export function CircuitLessonFigure({
   const legendId = `${id}-legend`;
   const compact = layout === "compact";
   const persisted = useMemo(
-    () => resolveLessonFigure(document, activeNet, { layout }),
-    [document, activeNet, layout],
+    () => resolveLessonFigure(document, activeNet, { layout, composition }),
+    [document, activeNet, layout, composition],
   );
   const [hover, setHover] = useState<{ document: unknown; net: string } | null>(null);
   const [focus, setFocus] = useState<{ document: unknown; net: string } | null>(null);
@@ -154,8 +199,8 @@ export function CircuitLessonFigure({
   const preview = annotations?.nets.find(({ net }) => net === (hovered ?? focused))?.net;
   const visible = useMemo(() => {
     if (!persisted.ok || !preview) return persisted;
-    return resolveLessonFigure(persisted.document, preview, { layout });
-  }, [persisted, preview, layout]);
+    return resolveLessonFigure(persisted.document, preview, { layout, composition });
+  }, [persisted, preview, layout, composition]);
   const diagnostics = useMemo(
     () => [
       ...visible.diagnostics,
@@ -199,6 +244,7 @@ export function CircuitLessonFigure({
     );
   }
 
+  const resolvedComposition = resolveSchematicComposition(persisted.document, composition);
   const { theme } = resolveTheme(persisted.document);
   const selected =
     activeNet === undefined
@@ -289,7 +335,7 @@ export function CircuitLessonFigure({
 
   function saveFigure() {
     if (!persisted.ok) return;
-    const exported = exportLessonFigure(persisted, { layout });
+    const exported = exportLessonFigure(persisted, { layout, composition });
     if (!exported.ok) {
       setDownloadError({ document, diagnostics: exported.diagnostics });
       return;
@@ -389,7 +435,12 @@ export function CircuitLessonFigure({
           style={{
             position: "relative",
             width: "100%",
-            minWidth: compact ? 0 : Math.min(width, Math.max(360, width * 0.6)),
+            minWidth:
+              resolvedComposition === "compact"
+                ? width * 0.75
+                : compact
+                  ? 0
+                  : Math.min(width, Math.max(360, width * 0.6)),
             maxWidth: compact ? width : undefined,
           }}
         >

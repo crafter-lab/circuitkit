@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCatalog, type RecipeId, renderSVG } from "../../src/index.ts";
+import { getCatalog, type RecipeId, renderSchematicSVG } from "../../src/index.ts";
 import { complexRecipeIds } from "../../src/schema.ts";
 import { getGalleryCases } from "./corpus.ts";
 import GalleryClient, { type GalleryCard } from "./gallery-client.tsx";
@@ -34,7 +34,7 @@ export default async function GalleryPage({
     ).flat();
   });
   const cards: GalleryCard[] = ordered.map((entry) => {
-    const result = renderSVG(entry.document);
+    const result = renderSchematicSVG(entry.document);
     const expectation = entry.expectation;
     const passed =
       expectation.kind === "render"

@@ -116,6 +116,8 @@ if (result.ok) {
 
 Use `CircuitSchematic` from `circuitkit/react` for the same bare circuit in React. No framing title, caption, footer, or legend. Opt into `CircuitLessonFigure` for compact interaction, with `layout="expanded"` only when you want the full lesson presentation. PNG supports `{ schematic: true }`; the CLI supports `--schematic`.
 
+Schematic rendering defaults to the compact composition for RC low-pass, inverting amplifier and bridge rectifier. The same JSON produces shorter routes with every declared component, value, terminal and connection preserved. No composition flag or React prop is needed: use `renderSchematicSVG(document)`, the schematic/lesson components, or CLI `--schematic`. Other recipes keep their existing supported layouts. The gallery and editor use this same default. See [usage and compatibility](docs/schematic.md) and the [live schematic preview harness](examples/compact-composition/README.md). Source changes do not imply a new npm release.
+
 ## Educational figures v2
 
 Educational v2 is included in the package; existing `circuitkit` imports and legacy CLI behavior remain compatible. React's optional peer is restricted to the two tested versions, `19.2.8 || 19.3.0`. The earlier isolated Gradual-version consumer used Next `16.3.3`; those framework-specific results remain historical evidence, separate from this release's packed Node checks.

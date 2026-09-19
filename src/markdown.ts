@@ -11,8 +11,14 @@ import {
   type SourceSelection,
 } from "./language/index.ts";
 import { parseSourceOptions } from "./language/project.ts";
+import {
+  renderSchematicSVG,
+  resolveSchematicComposition,
+  type SchematicComposition,
+} from "./renderer.ts";
 import type { FigureDocument } from "./schema.ts";
 import type { Diagnostic, Failure, FigureBounds } from "./types.ts";
+import { validateDocument } from "./validation.ts";
 
 const maxSourceBytes = 1024 * 1024;
 const maxPayloadBytes = 64 * 1024;
@@ -43,6 +49,10 @@ export type RenderedMarkdownFigure =
   | (LegacyMarkdownFigure & { svg: string; bounds: FigureBounds })
   | (DiagramMarkdownFigure & Pick<RenderedDiagram, "svg" | "bounds" | "targets">);
 export type MarkdownOptions = SourceOptions;
+export interface MarkdownSchematicSelection {
+  index: number;
+  composition?: SchematicComposition;
+}
 export type ParsedCircuitMarkdown =
   | { ok: true; figures: MarkdownFigure[]; diagnostics: [] }
   | Failure;
@@ -99,6 +109,30 @@ export function renderCircuitMarkdown(
   source: string,
   options?: MarkdownOptions,
 ): RenderedCircuitMarkdown {
+  return renderMarkdown(source, options);
+}
+
+function renderMarkdown(
+  source: string,
+  options?: MarkdownOptions,
+  selection?: MarkdownSchematicSelection,
+): RenderedCircuitMarkdown {
+  if (
+    selection !== undefined &&
+    (selection === null ||
+      typeof selection !== "object" ||
+      Array.isArray(selection) ||
+      Reflect.ownKeys(selection).some((key) => key !== "index" && key !== "composition") ||
+      !Number.isSafeInteger(selection.index) ||
+      selection.index < 0 ||
+      (selection.composition !== undefined &&
+        selection.composition !== "classic" &&
+        selection.composition !== "compact"))
+  )
+    return failure(
+      "invalid_selection",
+      'Expected a zero-based nonnegative integer index and optional composition ("classic" or "compact") only.',
+    );
   if (typeof source !== "string") return failure("invalid_source", "Expected Markdown text.");
   if (source.length > maxSourceBytes || encoder.encode(source).length > maxSourceBytes)
     return failure("too_large", "The Markdown document must fit within 1 MiB of UTF-8.");
@@ -199,6 +233,13 @@ export function renderCircuitMarkdown(
       continue;
     }
     if (isCircuitSource(node.value)) {
+      if (selection?.index === index) {
+        add(
+          "unsupported_selection",
+          "Schematic composition selection is legacy-only, not circuit source.",
+        );
+        continue;
+      }
       hasLanguage = true;
       const result = renderCircuitSource(node.value, effective);
       if (!result.ok) {
@@ -234,6 +275,13 @@ export function renderCircuitMarkdown(
         "schema" in input &&
         input.schema === "circuitkit.diagram.v1"
       ) {
+        if (selection?.index === index) {
+          add(
+            "unsupported_selection",
+            "Schematic composition selection is legacy-only, not diagram JSON.",
+          );
+          continue;
+        }
         const result = renderDiagramSVG(input, diagramOptions);
         if (!result.ok) {
           diagnostics.push(
@@ -250,7 +298,20 @@ export function renderCircuitMarkdown(
         });
         continue;
       }
-      const result = renderFigureSVG(input);
+      let selected = selection?.index === index;
+      if (selected && selection?.composition === undefined) {
+        const validation = validateDocument(input);
+        if (!validation.ok) {
+          diagnostics.push(
+            ...validation.diagnostics.map((diagnostic) => located(diagnostic, node, index)),
+          );
+          continue;
+        }
+        selected = resolveSchematicComposition(validation.document) === "compact";
+      }
+      const result = selected
+        ? renderSchematicSVG(input, { composition: selection?.composition })
+        : renderFigureSVG(input);
       if (!result.ok) {
         diagnostics.push(
           ...result.diagnostics.map((diagnostic) => located(diagnostic, node, index)),
@@ -269,6 +330,11 @@ export function renderCircuitMarkdown(
       add("invalid_figure", "The figure could not be validated or rendered safely.");
     }
   }
+  if (!diagnostics.length && selection && selection.index >= blocks.length)
+    return failure(
+      "selection_out_of_range",
+      `Schematic selection index ${selection.index} is out of range; Markdown contains ${blocks.length} validated figures.`,
+    );
   if (
     !diagnostics.length &&
     !hasLanguage &&
@@ -281,8 +347,9 @@ export function renderCircuitMarkdown(
 export function parseCircuitMarkdown(
   source: string,
   options?: MarkdownOptions,
+  selection?: MarkdownSchematicSelection,
 ): ParsedCircuitMarkdown {
-  const result = renderCircuitMarkdown(source, options);
+  const result = renderMarkdown(source, options, selection);
   if (!result.ok) return result;
   return {
     ok: true,

@@ -3,11 +3,29 @@ import { createComplexScene } from "./complex-scenes.ts";
 import type { Label, Point, Scene } from "./scene.ts";
 import { componentPins, type FigureDocument } from "./schema.ts";
 import { resolveTheme, type Theme } from "./theme.ts";
-import type { Box, Diagnostic, FigureBounds, RenderResult } from "./types.ts";
+import type { Box, Diagnostic, Failure, FigureBounds, FigureInfo, RenderResult } from "./types.ts";
 import { escapeXML, number, textPath } from "./typography.ts";
 import { jsonPointer, validateDocument } from "./validation.ts";
 
 export const rendererVersion = "0.1.0";
+
+export type SchematicComposition = "classic" | "compact";
+export interface SchematicOptions {
+  annotations?: boolean;
+  composition?: SchematicComposition;
+}
+export type SchematicRenderResult =
+  | (FigureInfo & { svg: string; endpoints?: Scene["endpoints"] })
+  | Failure;
+
+const compactRecipes = new Set(["rc-lowpass", "inverting-amplifier", "bridge-rectifier"]);
+
+export function resolveSchematicComposition(
+  document: FigureDocument,
+  requested?: SchematicComposition,
+): SchematicComposition {
+  return requested ?? (compactRecipes.has(document.layout.preset) ? "compact" : "classic");
+}
 
 export function formatSI(value: number, unit: string): string {
   const prefixes: [number, string][] = [
@@ -55,8 +73,12 @@ function componentValue(component: FigureDocument["circuit"]["components"][strin
   }
 }
 
-function createScene(document: FigureDocument): Scene {
-  const complex = createComplexScene(document, formatSI);
+function createScene(
+  document: FigureDocument,
+  composition: SchematicComposition = "classic",
+): Scene {
+  const compact = composition === "compact";
+  const complex = createComplexScene(document, formatSI, compact);
   if (complex) return complex;
   const scene: Scene = {
     routes: [],
@@ -123,17 +145,18 @@ function createScene(document: FigureDocument): Scene {
       );
       componentLabel(name, 650, 348);
     } else {
-      endpoint(`${name}.a`, [305, 270]);
-      endpoint(`${name}.b`, [445, 270]);
-      lead(`${name}.a`, [325, 270]);
-      lead(`${name}.b`, [425, 270]);
+      const x = compact ? 300 : 375;
+      endpoint(`${name}.a`, [x - 70, 270]);
+      endpoint(`${name}.b`, [x + 70, 270]);
+      lead(`${name}.a`, [x - 50, 270]);
+      lead(`${name}.b`, [x + 50, 270]);
       symbol(
         name,
-        ["M305 270H325M325 256H425V284H325ZM425 270H445"],
-        { x: 305, y: 256, width: 140, height: 28 },
+        [`M${x - 70} 270H${x - 50}M${x - 50} 256H${x + 50}V284H${x - 50}ZM${x + 50} 270H${x + 70}`],
+        { x: x - 70, y: 256, width: 140, height: 28 },
         28,
       );
-      componentLabel(name, 375, 207, "center");
+      componentLabel(name, x, compact ? 220 : 207, "center");
     }
   };
   const ground = (name: string, x: number, y: number, lead = 0) => {
@@ -248,36 +271,42 @@ function createScene(document: FigureDocument): Scene {
     const series = id(rc ? "series" : "top");
     const shunt = id(rc ? "shunt" : "bottom");
     resistor(series, false);
+    const shuntX = compact ? 440 : 600;
+    const capacitorY = compact ? 340 : 355;
+    const outputX = compact ? 620 : 820;
+    const groundY = compact ? 404 : 438;
     terminal(id("input"), [180, 270]);
-    terminal(id("output"), [820, 270]);
-    const shuntTop: Point = rc ? [600, 327] : [600, 320];
-    const shuntBottom: Point = rc ? [600, 383] : [600, 414];
+    terminal(id("output"), [outputX, 270]);
+    const shuntTop: Point = rc ? [shuntX, capacitorY - 28] : [600, 320];
+    const shuntBottom: Point = rc ? [shuntX, capacitorY + 28] : [600, 414];
     if (rc) {
       endpoint(`${shunt}.a`, shuntTop);
       endpoint(`${shunt}.b`, shuntBottom);
-      lead(`${shunt}.a`, [600, 345]);
-      lead(`${shunt}.b`, [600, 365]);
+      lead(`${shunt}.a`, [shuntX, capacitorY - 10]);
+      lead(`${shunt}.b`, [shuntX, capacitorY + 10]);
       symbol(
         shunt,
-        ["M600 327V345M576 345H624M576 365H624M600 365V383"],
-        { x: 576, y: 327, width: 48, height: 56 },
+        [
+          `M${shuntX} ${capacitorY - 28}V${capacitorY - 10}M${shuntX - 24} ${capacitorY - 10}H${shuntX + 24}M${shuntX - 24} ${capacitorY + 10}H${shuntX + 24}M${shuntX} ${capacitorY + 10}V${capacitorY + 28}`,
+        ],
+        { x: shuntX - 24, y: capacitorY - 28, width: 48, height: 56 },
         20,
       );
-      componentLabel(shunt, 650, 343);
+      componentLabel(shunt, shuntX + 50, capacitorY - 12);
     } else resistor(shunt, true);
-    ground(id("ground"), 600, 438);
+    ground(id("ground"), shuntX, groundY);
     route(id("input"), [
       [180, 270],
-      [305, 270],
+      [compact ? 230 : 305, 270],
     ]);
     route(id("output"), [
-      [445, 270],
-      [600, 270],
-      [820, 270],
+      [compact ? 370 : 445, 270],
+      [shuntX, 270],
+      [outputX, 270],
     ]);
-    route(id("output"), [[600, 270], shuntTop]);
-    route(id("ground"), [shuntBottom, [600, 438]]);
-    scene.dots.push({ net: netAt(id("output")), point: [600, 270] });
+    route(id("output"), [[shuntX, 270], shuntTop]);
+    route(id("ground"), [shuntBottom, [shuntX, groundY]]);
+    scene.dots.push({ net: netAt(id("output")), point: [shuntX, 270] });
     const top = components[series];
     const bottom = components[shunt];
     if (rc && top?.type === "resistor" && bottom?.type === "capacitor") {
@@ -437,13 +466,14 @@ function schematicBounds(
 function compile(
   authoredDocument: FigureDocument,
   mode: "figure" | "schematic" | "annotated-schematic" = "figure",
+  composition: SchematicComposition = "classic",
 ) {
   const document = {
     ...authoredDocument,
     presentation: deriveStepPresentation(authoredDocument.presentation),
   };
   const { theme, diagnostics } = resolveTheme(document);
-  const scene = createScene(document);
+  const scene = createScene(document, composition);
   const frame = scene.frame ?? {
     width: 1000,
     height: 600,
@@ -745,14 +775,17 @@ export function renderSVG(input: unknown): RenderResult {
 
 export function renderSchematicSVG(
   input: unknown,
-  options: { annotations?: boolean } = {},
-): RenderResult {
+  options: SchematicOptions = {},
+): SchematicRenderResult {
   if (
     options === null ||
     typeof options !== "object" ||
     Array.isArray(options) ||
-    Reflect.ownKeys(options).some((key) => key !== "annotations") ||
-    (options.annotations !== undefined && typeof options.annotations !== "boolean")
+    Reflect.ownKeys(options).some((key) => key !== "annotations" && key !== "composition") ||
+    (options.annotations !== undefined && typeof options.annotations !== "boolean") ||
+    (options.composition !== undefined &&
+      options.composition !== "classic" &&
+      options.composition !== "compact")
   )
     return {
       ok: false,
@@ -760,19 +793,33 @@ export function renderSchematicSVG(
         {
           code: "schematic.invalid_options",
           path: "/options",
-          message: "Expected only annotations (boolean).",
+          message: 'Expected only annotations (boolean) and composition ("classic" or "compact").',
         },
       ],
     };
   const validation = validateDocument(input);
   if (!validation.ok) return validation;
+  if (options.composition === "compact" && !compactRecipes.has(validation.document.layout.preset))
+    return {
+      ok: false,
+      diagnostics: [
+        {
+          code: "schematic.unsupported_composition",
+          path: "/options/composition",
+          message:
+            "Compact composition supports rc-lowpass, inverting-amplifier and bridge-rectifier only. Use classic for this recipe.",
+        },
+      ],
+    };
   const compiled = compile(
     validation.document,
     options.annotations ? "annotated-schematic" : "schematic",
+    resolveSchematicComposition(validation.document, options.composition),
   );
   if (!compiled.ok) return compiled;
   return {
     ok: true,
+    endpoints: compiled.endpoints,
     svg: compiled.svg,
     diagnostics: [],
     document: validation.document,
