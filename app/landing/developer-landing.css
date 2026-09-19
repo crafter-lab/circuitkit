@@ -84,14 +84,42 @@
 .skill-cta {
   min-width: 0;
 }
-.skill-install-line {
-  margin: 16px auto 0;
-  max-width: 100%;
-  overflow: auto;
+.agent-prompt-preview {
+  max-width: 640px;
+  margin: 4px auto 0;
+  text-align: left;
   font-size: 12px;
 }
-.skill-install-line code {
-  white-space: pre;
+.agent-prompt-preview summary {
+  width: fit-content;
+  margin-inline: auto;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--muted-foreground);
+}
+.agent-prompt-preview summary:hover {
+  color: var(--foreground);
+}
+.agent-prompt-preview summary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.agent-prompt-preview textarea {
+  display: block;
+  width: 100%;
+  min-height: 180px;
+  max-height: 400px;
+  margin-top: 8px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--syntax-background);
+  color: var(--foreground);
+  font-family: var(--font-geist), sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  resize: vertical;
 }
 .skill-copy-status {
   min-height: 3em;

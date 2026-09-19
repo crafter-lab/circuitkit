@@ -3,11 +3,11 @@ import { join } from "node:path";
 import Link from "next/link";
 import { renderCircuitSource } from "../../src/language/index.ts";
 import { StructuredData } from "../structured-data.tsx";
-import { InstallCommand } from "./install-actions.tsx";
+import { agentSetupPrompt } from "./agent-prompt.ts";
 import StoryDemo from "./story-demo.tsx";
 import "./developer-landing.css";
 
-import { highlightCode, installationCommand, integrationExample } from "./highlight-code.ts";
+import { highlightCode, integrationExample } from "./highlight-code.ts";
 import SkillCTA from "./skill-cta.tsx";
 
 export default async function DeveloperLanding() {
@@ -15,10 +15,7 @@ export default async function DeveloperLanding() {
     join(process.cwd(), "examples", "diagrams", "audio-story.ck"),
     "utf8",
   );
-  const [integrationHTML, skillHTML] = await Promise.all([
-    highlightCode(integrationExample, "typescript"),
-    highlightCode(installationCommand, "bash"),
-  ]);
+  const integrationHTML = await highlightCode(integrationExample, "typescript");
   const result = renderCircuitSource(source);
   if (!result.ok || !result.presentation) throw new Error("The landing circuit must compile.");
   return (
@@ -51,7 +48,7 @@ export default async function DeveloperLanding() {
           <br className="desktop-break" /> Get a block diagram, wiring diagram or schematic as SVG
           or PNG.
         </p>
-        <SkillCTA command={installationCommand} />
+        <SkillCTA prompt={agentSetupPrompt} />
         <p className="narrative-proof">Local rendering · SVG and PNG exports · Apache-2.0</p>
       </section>
       <section
@@ -115,8 +112,8 @@ export default async function DeveloperLanding() {
             what connects.
           </h2>
           <p>
-            Install the skill, describe your circuit, and ask for the view you need. Your agent
-            writes the source and renders an image you can actually see.
+            Copy the setup prompt into your agent and describe your circuit. It installs the tools,
+            writes the source, and brings up your first preview.
           </p>
           <Link href="/docs" prefetch={false} className="narrative-text-link">
             Start with the guide →
@@ -125,13 +122,11 @@ export default async function DeveloperLanding() {
         <div className="narrative-reference narrative-start" id="install-skill">
           <div className="narrative-start-step">
             <span className="narrative-file">01</span>
-            <h3>Install the skill in your project.</h3>
-            <p>Choose Codex, Claude Code or the agent you already use.</p>
-            <InstallCommand
-              label="Run once in your terminal"
-              command={installationCommand}
-              highlightedHTML={skillHTML}
-            />
+            <h3>Paste the setup prompt.</h3>
+            <p>
+              Use Codex, Claude Code or your coding agent. The prompt asks it to install CircuitKit
+              and the skill, then load the guide.
+            </p>
           </div>
           <div className="narrative-start-step">
             <span className="narrative-file">02</span>
@@ -143,10 +138,10 @@ export default async function DeveloperLanding() {
           </div>
           <div className="narrative-start-step">
             <span className="narrative-file">03</span>
-            <h3>Get a picture. Keep the source.</h3>
+            <h3>See the preview. Keep the source.</h3>
             <p>
-              Your agent renders an SVG or PNG and saves the editable .ck file beside it. Change a
-              connection and render again.
+              Your agent shows the PNG in your chat or opens it in an image viewer when available.
+              The editable .ck file and SVG stay in your project for the next change.
             </p>
             <Link href="/docs/quickstart" prefetch={false} className="narrative-text-link">
               Prefer the CLI? Write your first circuit →
@@ -195,8 +190,8 @@ export default async function DeveloperLanding() {
       </section>
       <section className="narrative-close" aria-labelledby="closing-heading">
         <p className="narrative-kicker">Get started</p>
-        <h2 id="closing-heading">Add CircuitKit to your agent.</h2>
-        <SkillCTA command={installationCommand} placement="Get started" />
+        <h2 id="closing-heading">Give your agent a circuit idea.</h2>
+        <SkillCTA prompt={agentSetupPrompt} placement="Get started" />
         <p>Apache-2.0 · Node.js 20+</p>
       </section>
     </main>

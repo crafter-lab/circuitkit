@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { applyMarkdownHeaders, createNotFoundResponse } from "@vercel/agent-readability";
 
+import { agentSetupPrompt } from "./landing/agent-prompt.ts";
 import { siteOrigin } from "./site-config.ts";
 
 export { docsCatalog as documentation } from "./docs/catalog.ts";
@@ -20,7 +21,15 @@ export const agentOverview = `# CircuitKit
 
 Describe modules, ports and connections in a text file. CircuitKit arranges them into blocks, wiring or modular schematics and exports SVG or PNG. Rendering runs locally. The project is licensed under Apache-2.0.
 
-## Install the skill
+## Copy a setup prompt
+
+Paste this prompt into your coding agent, then describe what you want to draw. It asks the agent to install the package and skill, load the versioned guide, and show the first image using the available environment.
+
+\`\`\`text
+${agentSetupPrompt}
+\`\`\`
+
+## Manual skill installation
 
 \`\`\`sh
 npx skills add crafter-lab/circuitkit --skill circuitkit

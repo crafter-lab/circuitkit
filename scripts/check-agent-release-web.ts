@@ -2,17 +2,28 @@ import { strict as assert } from "node:assert";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { agentSetupPrompt } from "../app/landing/agent-prompt.ts";
 
 const origin = process.env.CIRCUITKIT_QA_ORIGIN ?? "http://127.0.0.1:3258";
 const out = resolve(process.env.CIRCUITKIT_QA_OUTPUT ?? "artifacts/agent-release/web");
 mkdirSync(out, { recursive: true });
 const checks: unknown[] = [];
 let commands = 0;
+const session = spawnSync(
+  "agent-browser",
+  ["session", "id", "--scope", "worktree", "--prefix", "ckt-copy-prompt"],
+  { encoding: "utf8" },
+);
+assert.equal(session.status, 0, session.stderr);
 function browser(...args: string[]) {
-  const result = spawnSync("agent-browser", ["--session", "ckt-release-web", "--json", ...args], {
-    encoding: "utf8",
-    maxBuffer: 12 * 1024 * 1024,
-  });
+  const result = spawnSync(
+    "agent-browser",
+    ["--session", session.stdout.trim(), "--json", ...args],
+    {
+      encoding: "utf8",
+      maxBuffer: 12 * 1024 * 1024,
+    },
+  );
   commands++;
   assert.equal(
     result.status,
@@ -71,14 +82,32 @@ try {
       wait(
         "window.__copied.length===1 && !document.querySelector('.narrative-hero .narrative-primary').disabled",
       );
+      assert.equal(evaluate("window.__copied[0]"), agentSetupPrompt);
       assert.equal(
-        evaluate("window.__copied[0]"),
-        "npx skills add crafter-lab/circuitkit --skill circuitkit",
+        evaluate("document.querySelector('.narrative-hero .narrative-primary').textContent.trim()"),
+        "Copy prompt",
+      );
+      assert(
+        evaluate(
+          "document.querySelector('.narrative-hero [role=status]').textContent.includes('Paste into your agent')",
+        ),
       );
       assert.equal(
         evaluate("document.querySelector('.narrative-demo').getBoundingClientRect().top"),
         before,
       );
+      browser("click", ".narrative-hero .agent-prompt-preview summary");
+      wait("document.querySelector('.narrative-hero details').open");
+      assert.equal(
+        evaluate("document.querySelector('.narrative-hero textarea').value"),
+        agentSetupPrompt,
+      );
+      assert(!evaluate("document.documentElement.scrollWidth > innerWidth"));
+      browser("click", ".narrative-hero .agent-prompt-preview summary");
+      wait("!document.querySelector('.narrative-hero details').open");
+      browser("click", ".narrative-close .narrative-primary");
+      wait("window.__copied.length === 2");
+      assert.equal(evaluate("window.__copied[1]"), agentSetupPrompt);
       browser("click", ".story-navigation button:nth-child(3)");
       wait("document.querySelector('.story-source .shiki')");
       const code = evaluate("document.querySelector('.story-source pre').textContent");
@@ -89,13 +118,64 @@ try {
           "new Set([...document.querySelectorAll('.story-source .shiki span[style]')].map(s=>getComputedStyle(s).color)).size >= 3",
         ),
       );
-      assert(evaluate("!!document.querySelector('.narrative-start .shiki span[style]')"));
       browser("screenshot", resolve(out, `landing-${width}-${theme}.png`));
       audit(`landing-${width}-${theme}`);
-      checks.push({ width, theme, normal, hovered, clipboard: "exact command", layoutShift: 0 });
+      evaluate(
+        "Object.defineProperty(navigator, 'clipboard', {configurable:true,value:{writeText:async()=>{throw new Error('denied')}}});true",
+      );
+      browser("click", ".narrative-hero .narrative-primary");
+      wait(
+        "document.querySelector('.narrative-hero details').open && document.querySelector('.narrative-hero [role=status]').textContent.includes('Clipboard unavailable')",
+      );
+      assert.equal(
+        evaluate("document.querySelector('.narrative-hero textarea').value"),
+        agentSetupPrompt,
+      );
+      assert(evaluate("document.querySelector('.narrative-hero textarea').readOnly"));
+      browser("focus", ".narrative-hero textarea");
+      assert.deepEqual(
+        evaluate(
+          "(()=>{const t=document.querySelector('.narrative-hero textarea');return[t.selectionStart,t.selectionEnd]})()",
+        ),
+        [0, agentSetupPrompt.length],
+      );
+      assert(!evaluate("document.documentElement.scrollWidth > innerWidth"));
+      audit(`prompt-fallback-${width}-${theme}`);
+      browser("screenshot", resolve(out, `prompt-fallback-${width}-${theme}.png`));
+      browser("click", ".narrative-hero .agent-prompt-preview summary");
+      wait("!document.querySelector('.narrative-hero details').open");
+      checks.push({
+        width,
+        theme,
+        normal,
+        hovered,
+        clipboard: "exact prompt in both CTAs",
+        deniedClipboard: "visible selectable fallback",
+        layoutShift: 0,
+      });
     }
   }
   browser("set", "viewport", "1440", "1000");
+  evaluate("Object.defineProperty(navigator,'clipboard',{configurable:true,value:undefined});true");
+  browser("click", ".narrative-hero .narrative-primary");
+  wait(
+    "document.querySelector('.narrative-hero details').open && document.querySelector('.narrative-hero [role=status]').textContent.includes('Clipboard unavailable')",
+  );
+  browser("click", ".narrative-hero .agent-prompt-preview summary");
+  wait("!document.querySelector('.narrative-hero details').open");
+  evaluate(
+    "Object.defineProperty(navigator,'clipboard',{configurable:true,value:{writeText:text=>new Promise(resolve=>{window.__finishCopy=()=>{window.__pendingText=text;resolve()}})}});true",
+  );
+  browser("click", ".narrative-hero .narrative-primary");
+  wait(
+    "document.querySelector('.narrative-hero .narrative-primary').disabled && document.querySelector('.narrative-hero [role=status]').textContent.includes('Copying prompt')",
+  );
+  evaluate("window.__finishCopy();true");
+  wait(
+    "!document.querySelector('.narrative-hero .narrative-primary').disabled && document.querySelector('.narrative-hero [role=status]').textContent.includes('Copied.')",
+  );
+  assert.equal(evaluate("window.__pendingText"), agentSetupPrompt);
+  checks.push({ name: "missing clipboard fallback and pending clipboard state verified" });
   browser("click", ".story-navigation button:nth-child(2)");
   wait("document.querySelectorAll('.presentation-sweep').length > 0");
   const sceneBounds = evaluate(

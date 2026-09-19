@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import { useId, useState } from "react";
-import { copyInstallCommand } from "./install-actions.tsx";
+import { copyInstallCommand as copyText } from "./install-actions.tsx";
 
 export default function SkillCTA({
-  command,
+  prompt,
   placement = "Introduction",
 }: {
-  command: string;
+  prompt: string;
   placement?: string;
 }) {
   const id = useId();
   const [status, setStatus] = useState<"idle" | "copying" | "copied" | "failed">("idle");
+  const [expanded, setExpanded] = useState(false);
   async function copy() {
     setStatus("copying");
-    setStatus(await copyInstallCommand(command));
+    const result = await copyText(prompt);
+    setStatus(result);
+    if (result === "failed") setExpanded(true);
   }
   return (
     <div className="skill-cta">
@@ -24,10 +27,11 @@ export default function SkillCTA({
           type="button"
           className="narrative-primary"
           disabled={status === "copying"}
+          aria-busy={status === "copying"}
           onClick={copy}
           aria-describedby={id}
         >
-          Install skill <span aria-hidden="true">↗</span>
+          Copy prompt
         </button>
         <Link
           href="/editor?mode=circuitkit&example=audio-story"
@@ -37,20 +41,30 @@ export default function SkillCTA({
           Try the playground →
         </Link>
       </div>
-      <section
-        className="skill-install-line"
-        tabIndex={0}
-        aria-label={`${placement}: skill installation command`}
-      >
-        <code>{command}</code>
-      </section>
       <p id={id} className="skill-copy-status" role="status" aria-live="polite">
         {status === "copied"
-          ? "Copied. Run it in your project to install the skill."
+          ? "Copied. Paste into your agent, then share your circuit idea."
           : status === "failed"
-            ? "Clipboard unavailable. Select and copy the command above."
-            : "Copy the install command. Works with Codex, Claude Code and other agents."}
+            ? "Clipboard unavailable. Select the prompt below and copy it."
+            : status === "copying"
+              ? "Copying prompt…"
+              : "Paste into your coding agent, then describe your circuit."}
       </p>
+      <details
+        className="agent-prompt-preview"
+        open={expanded}
+        onToggle={(event) => setExpanded(event.currentTarget.open)}
+      >
+        <summary>View prompt</summary>
+        <textarea
+          aria-label={`${placement}: CircuitKit setup prompt`}
+          readOnly
+          spellCheck={false}
+          rows={10}
+          value={prompt}
+          onFocus={(event) => event.currentTarget.select()}
+        />
+      </details>
     </div>
   );
 }
