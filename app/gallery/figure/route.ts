@@ -1,4 +1,4 @@
-import { renderSVG } from "../../../src/index.ts";
+import { renderSchematicSVG } from "../../../src/index.ts";
 import { getGalleryCase } from "../corpus.ts";
 
 export function GET(request: Request): Response {
@@ -19,7 +19,7 @@ export function GET(request: Request): Response {
       { status: 404 },
     );
   }
-  const result = renderSVG(entry.document);
+  const result = renderSchematicSVG(entry.document);
   if (!result.ok) return Response.json(result, { status: 422 });
   const filename = `${entry.id.replaceAll("/", "-")}.svg`;
   return new Response(result.svg, {

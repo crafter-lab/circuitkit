@@ -13,7 +13,7 @@ import Page from "../app/page.tsx";
 import { SiteFooter } from "../app/site-footer.tsx";
 import { SiteHeader } from "../app/site-header.tsx";
 import { AppThemeProvider, useSiteTheme } from "../app/theme-provider.tsx";
-import { getCatalog, getSchema, loadExample, renderSVG } from "../src/index.ts";
+import { getCatalog, getSchema, loadExample, renderSchematicSVG, renderSVG } from "../src/index.ts";
 import { CircuitFigure } from "../src/react.tsx";
 import { recipeSchema, themePresetSchema } from "../src/schema.ts";
 import hashes from "./fixtures/unannotated-svg-hashes.json";
@@ -184,7 +184,7 @@ describe("shared site shell SSR", () => {
       const entry = getGalleryCase(id);
       if (!entry) throw new Error(`Missing fixture ${id}`);
       const before = JSON.stringify(entry.document, null, 2);
-      const result = renderSVG(entry.document);
+      const result = renderSchematicSVG(entry.document);
       const html = renderToStaticMarkup(
         compose(await FigurePage({ searchParams: Promise.resolve({ case: id }) })),
       );

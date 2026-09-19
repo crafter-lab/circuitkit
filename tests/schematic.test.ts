@@ -97,7 +97,7 @@ for (const recipe of recipeIds) {
         const plain = structuredClone(document);
         delete plain.presentation.annotations;
         const legacy = success(renderSVG(plain));
-        const result = success(renderSchematicSVG(document));
+        const result = success(renderSchematicSVG(document, { composition: "classic" }));
         const detail = inspect(document);
         expect(detail.ok).toBe(true);
         if (!detail.ok) throw new Error(JSON.stringify(detail.diagnostics));
@@ -109,8 +109,10 @@ for (const recipe of recipeIds) {
         expect(circuitPaint(result.svg)).toBe(circuitPaint(legacy.svg));
         expect(result.bounds.width).toBeLessThan(legacy.bounds.width);
         expect(result.bounds.height).toBeLessThan(legacy.bounds.height);
-        expect(success(renderSchematicSVG(document, { annotations: false }))).toEqual(result);
-        expect(success(renderSchematicSVG(plain)).svg).toBe(result.svg);
+        expect(
+          success(renderSchematicSVG(document, { annotations: false, composition: "classic" })),
+        ).toEqual(result);
+        expect(success(renderSchematicSVG(plain, { composition: "classic" })).svg).toBe(result.svg);
         for (const [endpoint, { x, y, net }] of Object.entries(detail.endpoints)) {
           expect(result.circuit.nets[net]).toContain(endpoint);
           contains(result.bounds, { x, y, width: 0, height: 0 });
@@ -132,8 +134,10 @@ for (const recipe of recipeIds) {
         };
         const original = structuredClone(document);
         const legacy = success(renderSVG(document));
-        const result = success(renderSchematicSVG(document, { annotations: true }));
-        const pure = success(renderSchematicSVG(document));
+        const result = success(
+          renderSchematicSVG(document, { annotations: true, composition: "classic" }),
+        );
+        const pure = success(renderSchematicSVG(document, { composition: "classic" }));
         expect(result.annotations).toEqual(legacy.annotations);
         expect(circuitPaint(result.svg)).toBe(circuitPaint(legacy.svg));
         expect(result.circuit).toEqual(pure.circuit);
@@ -341,7 +345,20 @@ describe("schematic contract and validation", () => {
       const expected = renderSVG(document);
       expect(expected.ok).toBe(false);
       for (const annotations of [false, true])
-        expect(renderSchematicSVG(document, { annotations })).toEqual(expected);
+        expect(renderSchematicSVG(document, { annotations, composition: "classic" })).toEqual(
+          expected,
+        );
+      for (const annotations of [false, true]) {
+        const automatic = renderSchematicSVG(document, { annotations });
+        expect(automatic.ok).toBe(false);
+        expect(automatic).not.toHaveProperty("svg");
+        expect(automatic).toEqual(
+          renderSchematicSVG(document, { annotations, composition: "compact" }),
+        );
+        expect(new Set(automatic.diagnostics.map(({ code }) => code))).toEqual(
+          new Set(expected.diagnostics.map(({ code }) => code)),
+        );
+      }
       expect(document).toEqual(original);
     });
   }

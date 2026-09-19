@@ -5,6 +5,7 @@ import { complexRecipeIds, type FigureDocument } from "./schema.ts";
 export function createComplexScene(
   document: FigureDocument,
   formatSI: (value: number, unit: string) => string,
+  compact = false,
 ): Scene | null {
   const preset = document.layout.preset;
   if (!complexRecipeIds.some((id) => id === preset)) return null;
@@ -325,7 +326,7 @@ export function createComplexScene(
       box: { x: x - 150, y: y - 130, width: 300, height: 260 },
       gap: 16,
     });
-    componentLabel(role, x + 100, y + 190);
+    componentLabel(role, x + (compact ? 180 : 100), y + (compact ? 120 : 190));
   };
   label("title", document.presentation.title, 64, 82, {
     size: 34,
@@ -412,6 +413,37 @@ export function createComplexScene(
       dot("ground", [700, 850]);
       break;
     case "bridge-rectifier":
+      if (compact) {
+        terminal("inputA", [190, 440]);
+        terminal("inputB", [680, 440]);
+        terminal("output", [1100, 240]);
+        twoPin("positiveA", 330, 340, "up", [380, 326]);
+        twoPin("positiveB", 550, 340, "up", [600, 326]);
+        twoPin("negativeA", 330, 540, "up", [380, 526]);
+        twoPin("negativeB", 550, 540, "up", [600, 526]);
+        twoPin("load", 800, 440, "down", [850, 426]);
+        twoPin("filter", 1000, 440, "down", [1050, 426]);
+        ground("ground", 800, 684);
+        wire("inputA", [330, 400], [330, 480]);
+        wire("inputA", [190, 440], [330, 440]);
+        dot("inputA", [330, 440]);
+        wire("inputB", [550, 400], [550, 480]);
+        wire("inputB", [550, 440], [680, 440]);
+        dot("inputB", [550, 440]);
+        wire("output", [330, 280], [330, 240], [1100, 240]);
+        wire("output", [550, 280], [550, 240]);
+        dot("output", [550, 240]);
+        wire("output", [800, 380], [800, 240]);
+        dot("output", [800, 240]);
+        wire("output", [1000, 380], [1000, 240]);
+        dot("output", [1000, 240]);
+        wire("ground", [330, 600], [330, 640], [1000, 640], [1000, 500]);
+        wire("ground", [550, 600], [550, 640]);
+        dot("ground", [550, 640]);
+        wire("ground", [800, 500], [800, 640], [800, 684]);
+        dot("ground", [800, 640]);
+        break;
+      }
       terminal("inputA", [180, 560]);
       terminal("inputB", [1050, 560]);
       terminal("output", [1500, 260]);
@@ -459,6 +491,27 @@ export function createComplexScene(
       dot("ground", [700, 1000]);
       break;
     case "inverting-amplifier":
+      if (compact) {
+        terminal("input", [150, 515]);
+        terminal("output", [920, 560]);
+        terminal("positiveSupply", [620, 400], [680, 408], "left");
+        terminal("negativeSupply", [620, 740], [680, 748], "left");
+        twoPin("inputResistor", 280, 515, "right", [280, 463], "center");
+        twoPin("feedback", 620, 310, "right", [620, 258], "center");
+        opamp("amplifier", 620, 560);
+        ground("ground", 360, 684);
+        wire("input", [150, 515], [220, 515]);
+        wire("amplifier.inverting", [340, 515], [470, 515]);
+        wire("amplifier.inverting", [440, 515], [440, 310], [560, 310]);
+        dot("amplifier.inverting", [440, 515]);
+        wire("output", [770, 560], [920, 560]);
+        wire("output", [830, 560], [830, 310], [680, 310]);
+        dot("output", [830, 560]);
+        wire("ground", [470, 605], [360, 605], [360, 684]);
+        wire("positiveSupply", [620, 400], [620, 430]);
+        wire("negativeSupply", [620, 690], [620, 740]);
+        break;
+      }
       terminal("input", [150, 605]);
       terminal("output", [1370, 650]);
       terminal("positiveSupply", [950, 440], [1030, 448], "left");

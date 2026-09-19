@@ -7,6 +7,9 @@ export {
   rendererVersion,
   renderSchematicSVG,
   renderSVG,
+  type SchematicComposition,
+  type SchematicOptions,
+  type SchematicRenderResult,
   validate,
 } from "./renderer.ts";
 export type {

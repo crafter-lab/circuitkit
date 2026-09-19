@@ -1,10 +1,11 @@
 import { renderFigureSVG } from "./figure-svg.ts";
-import { renderSchematicSVG, renderSVG } from "./renderer.ts";
+import { renderSchematicSVG, renderSVG, type SchematicComposition } from "./renderer.ts";
 import type { Failure, FigureInfo } from "./types.ts";
 
 export interface PNGOptions {
   figure?: boolean;
   schematic?: boolean;
+  composition?: SchematicComposition;
   scale?: number;
 }
 
@@ -28,16 +29,19 @@ export async function renderPNG(input: unknown, options: PNGOptions = {}): Promi
     typeof options !== "object" ||
     Array.isArray(options) ||
     Reflect.ownKeys(options).some(
-      (key) => key !== "figure" && key !== "schematic" && key !== "scale",
+      (key) => key !== "figure" && key !== "schematic" && key !== "composition" && key !== "scale",
     ) ||
     (options.figure !== undefined && typeof options.figure !== "boolean") ||
     (options.schematic !== undefined && typeof options.schematic !== "boolean") ||
-    (options.figure === true && options.schematic === true)
+    (options.figure === true && options.schematic === true) ||
+    (options.composition !== undefined &&
+      (options.schematic !== true ||
+        (options.composition !== "classic" && options.composition !== "compact")))
   )
     return failure(
       "invalid_options",
       "/options",
-      "Expected only figure and schematic (mutually exclusive booleans), and scale (integer 1 through 4).",
+      'Expected only figure and schematic (mutually exclusive booleans), composition ("classic" or "compact", requires schematic: true), and scale (integer 1 through 4).',
     );
   const scale = options.scale === undefined ? 1 : options.scale;
   if (!Number.isInteger(scale) || scale < 1 || scale > 4)
@@ -47,7 +51,10 @@ export async function renderPNG(input: unknown, options: PNGOptions = {}): Promi
       "PNG scale must be an integer from 1 through 4.",
     );
   const result = options.schematic
-    ? renderSchematicSVG(input)
+    ? renderSchematicSVG(
+        input,
+        options.composition === undefined ? {} : { composition: options.composition },
+      )
     : options.figure
       ? renderFigureSVG(input)
       : renderSVG(input);

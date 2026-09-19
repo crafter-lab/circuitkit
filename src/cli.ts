@@ -27,6 +27,7 @@ import {
   renderFigureSVG,
   renderSchematicSVG,
   renderSVG,
+  type SchematicComposition,
   validate,
 } from "./index.ts";
 import {
@@ -62,6 +63,7 @@ Flags:
   --overwrite  Explicitly replace --out only after successful validation
   --figure     Include annotations, caption, and active step; render only
   --schematic  Circuit only, tightly cropped; render only; excludes --figure
+  --composition C  compact; automatic by recipe when omitted; render --schematic only
   --format F   svg (default) or png; render only
   --scale N    Integer 1 through 4; PNG only; default 1; 16,000,000 pixel cap
   --block N    Select a 1-based Markdown figure for validate/inspect/render
@@ -360,6 +362,7 @@ async function main(): Promise<void> {
           overwrite: { type: "boolean" },
           figure: { type: "boolean" },
           schematic: { type: "boolean" },
+          composition: { type: "string" },
           format: { type: "string" },
           scale: { type: "string" },
           block: { type: "string" },
@@ -418,6 +421,14 @@ async function main(): Promise<void> {
       ].includes(command)
     )
       usage(`Unknown command ${JSON.stringify(command)}.`);
+    let composition: SchematicComposition | undefined;
+    if (flags.composition !== undefined) {
+      if (command !== "render" || flags.schematic !== true)
+        usage("--composition applies only to render --schematic.");
+      if (flags.composition !== "classic" && flags.composition !== "compact")
+        usage("--composition must be classic or compact.");
+      composition = flags.composition;
+    }
     if (flags.help || command === "help") {
       if (command === "help" && parsed.positionals.length > 1)
         usage("Help takes no positional arguments.");
@@ -627,7 +638,20 @@ async function main(): Promise<void> {
       const markdown =
         command === "markdown"
           ? renderCircuitMarkdown(text, options)
-          : parseCircuitMarkdown(text, options);
+          : parseCircuitMarkdown(
+              text,
+              options,
+              flags.schematic === true && composition !== "classic" && block !== undefined
+                ? { index: block - 1, ...(composition === undefined ? {} : { composition }) }
+                : undefined,
+            );
+      if (
+        !markdown.ok &&
+        markdown.diagnostics.every(({ code }) =>
+          ["markdown.unsupported_selection", "markdown.selection_out_of_range"].includes(code),
+        )
+      )
+        usage(markdown.diagnostics.map(({ message }) => message).join(" "));
       if (
         markdown.ok &&
         command === "markdown" &&
@@ -701,10 +725,11 @@ async function main(): Promise<void> {
                 ? await (await import("./png.ts")).renderPNG(document, {
                     figure: flags.figure === true,
                     schematic: flags.schematic === true,
+                    ...(composition === undefined ? {} : { composition }),
                     scale: Number(flags.scale ?? 1),
                   })
                 : flags.schematic
-                  ? renderSchematicSVG(document)
+                  ? renderSchematicSVG(document, composition === undefined ? {} : { composition })
                   : flags.figure
                     ? renderFigureSVG(document)
                     : renderSVG(document);
