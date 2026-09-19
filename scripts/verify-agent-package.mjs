@@ -6,6 +6,9 @@ import { resolve } from "node:path";
 import { renderCircuitSource } from "circuitkit/language";
 
 const bin = resolve("node_modules/.bin/circuitkit");
+const expectedVersion = JSON.parse(
+  readFileSync("node_modules/circuitkit/package.json", "utf8"),
+).version;
 const source = readFileSync("node_modules/circuitkit/examples/diagrams/audio-story.ck", "utf8");
 writeFileSync("audio.ck", source, { flag: "wx" });
 let checks = 0;
@@ -22,13 +25,13 @@ function run(args) {
 }
 const version = run(["--version"]);
 assert.equal(version.status, 0);
-assert.equal(version.body.packageVersion, "0.1.0");
+assert.equal(version.body.packageVersion, expectedVersion);
 const skills = run(["skills", "list"]);
 assert.equal(skills.status, 0);
 for (const { name } of skills.body.skills) {
   const result = run(["skills", "get", name]);
   assert.equal(result.status, 0);
-  assert.equal(result.body.packageVersion, "0.1.0");
+  assert.equal(result.body.packageVersion, expectedVersion);
   assert(result.body.content.length > 100);
 }
 const guide = execFileSync(bin, ["skill", "get", "core", "--text"], { encoding: "utf8" });
