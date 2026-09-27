@@ -1,6 +1,7 @@
 import { chmodSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from "node:fs";
 import { createRequire } from "node:module";
 import { basename, dirname, join } from "node:path";
+import { buildMcp } from "./build-mcp.ts";
 
 const { parse } = createRequire(import.meta.url)("next/dist/compiled/acorn") as {
   parse(
@@ -149,6 +150,7 @@ if (import.meta.main) {
     if (!entry.regular || modules.some((source) => source.includes(entry.name)))
       throw new Error(`Refusing to remove non-regular or referenced native output: ${entry.path}`);
   }
+  await buildMcp();
   for (const entry of staleNative) {
     unlinkSync(entry.path);
     console.log(`Removed stale generated native output: ${entry.path}`);

@@ -54,6 +54,18 @@ npx skills add crafter-lab/circuitkit --skill circuitkit
 
 Choose your agent when prompted. No global flag is needed. Append `--list` to inspect available skills without installing. The small [discovery stub](skills/circuitkit/SKILL.md) points to `circuitkit skills get core --text`; the actual authoring guide is packaged with the CLI. Use `circuitkit skills list --json` to discover specialized guides. The stub explains how to use the latest CLI when none is installed, without silently upgrading pinned projects.
 
+## MCP images and optional exploration
+
+The `circuitkit-mcp` stdio server exposes `show_circuit` for PNG images in the
+conversation, including hosts that support widgets. Explanations and revision
+requests stay in the chat. Use `explore_circuit` only when you want an interactive
+viewer with selection on the drawing, zoom and authored scenes.
+
+Build this source checkout with `bun run build`, then register
+`node "$PWD/dist/mcp/cli.js"` in an MCP client. See [setup and the tool contract](docs/mcp-apps.md).
+Interactive UI depends on the host; a successful MCP connection alone does not
+establish it. No new registry release is implied by this source change.
+
 ## Write the compact text language
 
 Use the bus-grouped text syntax in a `circuitkit` Markdown fence or a `.ck` file. JSON remains compatible. The same source generates blocks, wiring and modular schematics without coordinates:
@@ -133,7 +145,7 @@ V2 supports bounded models across three teaching domains: electrical circuits an
 | `circuitkit/v2/png` | Node-compatible `renderEducationalPNG`, with the native Resvg dependency loaded lazily |
 | `circuitkit/gradual` | Trusted-host Gradual adaptation and selected-stage projection |
 
-All imports have generated declarations in `dist`. Core, public rendering and React entries are browser-target ESM; PNG and both CLIs are Node-target ESM. The `/v2/server` alias is an explicit projection convention, not a bundler-enforced `server-only` guard. Hosts must keep author models and author diagnostics out of client bundles, props and logs.
+All imports have generated declarations in `dist`. Core, public rendering and React entries are browser-target ESM; PNG and the CLI executables are Node-target ESM. The `/v2/server` alias is an explicit projection convention, not a bundler-enforced `server-only` guard. Hosts must keep author models and author diagnostics out of client bundles, props and logs.
 
 On the trusted host, authorize the stage before projection:
 
