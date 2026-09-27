@@ -73,7 +73,8 @@
   },
   "bin": {
     "circuitkit": "./dist/cli.js",
-    "circuitkit-education": "./dist/education-cli.js"
+    "circuitkit-education": "./dist/education-cli.js",
+    "circuitkit-mcp": "./dist/mcp/cli.js"
   },
   "files": [
     "dist",
@@ -95,6 +96,7 @@
     "docs/diagram-language.md",
     "docs/compact-language.md",
     "docs/presentation.md",
+    "docs/mcp-apps.md",
     "examples/diagrams/*.ck",
     "examples/diagrams/*.json",
     "examples/diagrams/*.md",
@@ -118,6 +120,7 @@
   "scripts": {
     "brand:generate": "bun scripts/generate-brand-assets.ts",
     "build": "bun scripts/build.ts",
+    "build:mcp": "bun scripts/build-mcp.ts",
     "dev": "next dev --hostname 127.0.0.1",
     "build:web": "bun scripts/build.ts --skip-fonts && next build",
     "start": "next start --hostname 127.0.0.1",
@@ -141,6 +144,10 @@
     }
   },
   "dependencies": {
+    "@modelcontextprotocol/client": "2.0.0",
+    "@modelcontextprotocol/core": "2.0.0",
+    "@modelcontextprotocol/ext-apps": "2.0.0",
+    "@modelcontextprotocol/server": "2.0.0",
     "@resvg/resvg-js": "2.6.2",
     "mdast-util-from-markdown": "2.0.3",
     "zod": "4.6.2"

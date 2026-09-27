@@ -89,6 +89,7 @@ describe("current package build artifacts (run bun run build first)", () => {
     expect(pkg.bin).toEqual({
       circuitkit: "./dist/cli.js",
       "circuitkit-education": "./dist/education-cli.js",
+      "circuitkit-mcp": "./dist/mcp/cli.js",
     });
     for (const [entry, subpaths] of Object.entries({
       cli: ["index", "png", "markdown"],
