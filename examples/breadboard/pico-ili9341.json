@@ -1,0 +1,148 @@
+{
+  "schema": "circuitkit.breadboard.v1",
+  "id": "pico-ili9341",
+  "title": "Pico 2 W + 2.4in ILI9341 (SPI0)",
+  "board": {
+    "rows": 63,
+    "rails": "full",
+    "railOrder": "repeated",
+    "railHoles": "grouped",
+    "railStart": 3
+  },
+  "parts": [
+    {
+      "id": "pico",
+      "label": "Pico 2 W",
+      "kind": "dip",
+      "at": "c24",
+      "to": "h43",
+      "top": "USB",
+      "pins": {
+        "left": [
+          "GP0",
+          "GP1",
+          "GND",
+          "GP2",
+          "GP3",
+          "GP4",
+          "GP5",
+          "GND",
+          "GP6",
+          "GP7",
+          "GP8",
+          "GP9",
+          "GND",
+          "GP10",
+          "GP11",
+          "GP12",
+          "GP13",
+          "GND",
+          "GP14",
+          "GP15"
+        ],
+        "right": [
+          "VBUS",
+          "VSYS",
+          "GND",
+          "3V3_EN",
+          "3V3(OUT)",
+          "ADC_VREF",
+          "GP28",
+          "GND",
+          "GP27",
+          "GP26",
+          "RUN",
+          "GP22",
+          "GND",
+          "GP21",
+          "GP20",
+          "GP19",
+          "GP18",
+          "GND",
+          "GP17",
+          "GP16"
+        ]
+      }
+    },
+    {
+      "id": "tft",
+      "label": "ILI9341 2.4in",
+      "kind": "header",
+      "at": "a48",
+      "body": "left",
+      "pins": [
+        "T_IRQ",
+        "T_DO",
+        "T_DIN",
+        "T_CS",
+        "T_CLK",
+        "SDO(MISO)",
+        "LED",
+        "SCK",
+        "SDI(MOSI)",
+        "DC",
+        "RESET",
+        "CS",
+        "GND",
+        "VCC"
+      ]
+    }
+  ],
+  "wires": [
+    {
+      "from": "i26",
+      "to": "R-27"
+    },
+    {
+      "from": "i28",
+      "to": "R+28"
+    },
+    {
+      "from": "i37",
+      "to": "e58",
+      "color": "purple"
+    },
+    {
+      "from": "i38",
+      "to": "e57",
+      "color": "orange"
+    },
+    {
+      "from": "i39",
+      "to": "e56",
+      "color": "blue"
+    },
+    {
+      "from": "i40",
+      "to": "e55",
+      "color": "green"
+    },
+    {
+      "from": "i42",
+      "to": "e59",
+      "color": "yellow"
+    },
+    {
+      "from": "e61",
+      "to": "R+61"
+    },
+    {
+      "from": "e54",
+      "to": "R+53"
+    },
+    {
+      "from": "e60",
+      "to": "R-59"
+    }
+  ],
+  "expect": [
+    ["pico.GND", "tft.GND"],
+    ["pico.3V3(OUT)", "tft.VCC"],
+    ["pico.3V3(OUT)", "tft.LED"],
+    ["pico.GP21", "tft.RESET"],
+    ["pico.GP20", "tft.DC"],
+    ["pico.GP19", "tft.SDI(MOSI)"],
+    ["pico.GP18", "tft.SCK"],
+    ["pico.GP17", "tft.CS"]
+  ]
+}

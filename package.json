@@ -46,6 +46,14 @@
       "types": "./dist/diagram/index.d.ts",
       "import": "./dist/diagram/index.js"
     },
+    "./breadboard": {
+      "types": "./dist/breadboard/index.d.ts",
+      "import": "./dist/breadboard/index.js"
+    },
+    "./breadboard/png": {
+      "types": "./dist/breadboard/png.d.ts",
+      "import": "./dist/breadboard/png.js"
+    },
     "./v2": {
       "types": "./dist/v2/index.d.ts",
       "import": "./dist/v2/index.js"
@@ -100,6 +108,8 @@
     "examples/diagrams/*.ck",
     "examples/diagrams/*.json",
     "examples/diagrams/*.md",
+    "examples/breadboard/*.json",
+    "docs/breadboard.md",
     "docs/teaching-steps.md",
     "docs/schematic.md",
     "docs/compact-composition.md",

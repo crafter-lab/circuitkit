@@ -111,6 +111,17 @@ The same JSON works inside a fenced `circuitkit` Markdown block. Use `renderDiag
 
 The three views retain a connected composition: one module per identity, grouped buses in blocks, pin-to-pin cables in wiring, and signal wires with supply/ground symbols in schematics. Optional module `kind` and connection `direction` describe the system, never coordinates. Views preserve declared connectivity; none certifies electrical operation. The [language guide](docs/diagram-language.md) covers grammar, errors, limits and packaged examples. Existing legacy figures and educational v2 remain separate and compatible.
 
+## Lay out a breadboard
+
+When the question is which hole each wire goes in, use `circuitkit.breadboard.v1`. Parts sit on named holes, wires join holes or rail holes, and the nets are derived from the strips. Optional `expect` pairs turn a wrong wire into an open or short diagnostic before anything is powered.
+
+```sh
+npx circuitkit schema --breadboard --json
+npx circuitkit render node_modules/circuitkit/examples/breadboard/pico-ili9341.json --out board.svg
+```
+
+See the [breadboard guide](docs/breadboard.md).
+
 ## Render a minimal circuit
 
 After installing a local build with the schematic APIs:

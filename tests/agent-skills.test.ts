@@ -25,6 +25,7 @@ test("installed package version and guide discovery share a versioned machine en
     "core",
     "language",
     "presentation",
+    "breadboard",
     "education",
     "legacy",
   ]);
