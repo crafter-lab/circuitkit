@@ -455,6 +455,59 @@ function text(
   return `<g fill="${fill}">${textPath(value, family, size, x, y, align).svg}</g>`;
 }
 
+type Point = { x: number; y: number };
+type Box = { x1: number; y1: number; x2: number; y2: number };
+const directions: Point[] = [
+  { x: 1, y: 0 },
+  { x: -1, y: 0 },
+  { x: 0, y: 1 },
+  { x: 0, y: -1 },
+];
+const cubic = (a: Point, c1: Point, c2: Point, b: Point, t: number): Point => {
+  const u = 1 - t;
+  return {
+    x: u * u * u * a.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * b.x,
+    y: u * u * u * a.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * b.y,
+  };
+};
+
+// Pick end tangents so the jumper arcs around part bodies instead of across them.
+function wireControls(a: Point, b: Point, bodies: Box[]): [Point, Point] {
+  const bow = Math.min(90, 26 + Math.hypot(b.x - a.x, b.y - a.y) * 0.3);
+  let best: [Point, Point] = [a, b];
+  let bestScore = Number.POSITIVE_INFINITY;
+  for (const da of directions)
+    for (const db of directions) {
+      const c1 = { x: a.x + da.x * bow, y: a.y + da.y * bow };
+      const c2 = { x: b.x + db.x * bow, y: b.y + db.y * bow };
+      let hits = 0;
+      let length = 0;
+      let previous = a;
+      for (let i = 1; i <= 32; i++) {
+        const point = cubic(a, c1, c2, b, i / 32);
+        length += Math.hypot(point.x - previous.x, point.y - previous.y);
+        previous = point;
+        const nearEnd =
+          Math.hypot(point.x - a.x, point.y - a.y) < 10 ||
+          Math.hypot(point.x - b.x, point.y - b.y) < 10;
+        if (
+          !nearEnd &&
+          bodies.some(
+            (box) => point.x > box.x1 && point.x < box.x2 && point.y > box.y1 && point.y < box.y2,
+          )
+        )
+          hits++;
+      }
+      // Horizontal tangents read as separate jumpers; only turn vertical to dodge a body.
+      const score = hits * 1000 + length + (da.y !== 0 ? 120 : 0) + (db.y !== 0 ? 120 : 0);
+      if (score < bestScore) {
+        bestScore = score;
+        best = [c1, c2];
+      }
+    }
+  return best;
+}
+
 export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failure {
   const compiled = compileBreadboard(input);
   if (!compiled.ok) return compiled;
@@ -527,6 +580,7 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
         );
   }
 
+  const bodies: { x1: number; y1: number; x2: number; y2: number }[] = [];
   for (const part of document.parts) {
     const pins = placed.filter((pin) => pin.part === part.id);
     const first = parseHole(part.at);
@@ -538,6 +592,7 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
       const x2 = columnX(end.column) + P * 0.7;
       const y1 = rowY(first.row) - P * 0.8;
       const y2 = rowY(lastRow) + P * 0.8;
+      bodies.push({ x1, y1, x2, y2 });
       out.push(
         `<rect x="${x1}" y="${y1}" width="${x2 - x1}" height="${y2 - y1}" rx="4" fill="${palette.dip}" opacity="0.92"/>`,
       );
@@ -619,12 +674,8 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
         wire.color ??
           (power ? "red" : ground ? "black" : (autoColors[auto++ % autoColors.length] ?? "blue"))
       ];
-    const bow = Math.min(90, 26 + Math.abs(b.y - a.y) * 0.35);
-    const side = a.x + b.x > columnX(4) + columnX(5) ? 1 : -1;
-    const d =
-      Math.abs(a.y - b.y) < 1
-        ? `M${number(a.x)},${number(a.y)} C${number(a.x)},${number(a.y - 22)} ${number(b.x)},${number(b.y - 22)} ${number(b.x)},${number(b.y)}`
-        : `M${number(a.x)},${number(a.y)} C${number(a.x + side * bow)},${number(a.y)} ${number(b.x + side * bow)},${number(b.y)} ${number(b.x)},${number(b.y)}`;
+    const [c1, c2] = wireControls(a, b, bodies);
+    const d = `M${number(a.x)},${number(a.y)} C${number(c1.x)},${number(c1.y)} ${number(c2.x)},${number(c2.y)} ${number(b.x)},${number(b.y)}`;
     out.push(
       `<path d="${d}" fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" opacity="0.9"/>`,
     );
