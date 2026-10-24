@@ -7,6 +7,7 @@
 - Columns `a`–`e` and `f`–`j`, separated by the center gap. Rows `1`–`rows` (default 63, the full-size board).
 - A terminal strip is the five holes of one row on one side of the gap: `a24`–`e24` are connected, `f24`–`j24` are another strip.
 - Four rails run the length of the board: `L-`, `L+` on the left, `R+`, `R-` on the right. A rail hole is written with its row, such as `R-26`. Every row has a rail hole in this model; real boards skip some.
+- `board.railOrder` matches the print on the board: `repeated` (default) is `- +` on both sides, `mirrored` is `- +` on the left and `+ -` on the right. It changes the drawing, not the connectivity.
 - `board.rails: "split"` cuts every rail in half after row `ceil(rows / 2)`, for boards whose rails are interrupted in the middle.
 
 ## Document

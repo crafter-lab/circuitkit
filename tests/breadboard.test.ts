@@ -69,6 +69,17 @@ describe("breadboard documents", () => {
     expect(codes(document)).toContain("breadboard.expect_open");
   });
 
+  test("rail order moves the right rails without changing nets", () => {
+    const mirrored = example();
+    mirrored.board = { railOrder: "mirrored" };
+    const a = renderBreadboardSVG(example());
+    const b = renderBreadboardSVG(mirrored);
+    expect(a.ok && b.ok).toBe(true);
+    if (!a.ok || !b.ok) return;
+    expect(a.svg).not.toBe(b.svg);
+    expect(b.nets).toEqual(a.nets);
+  });
+
   test("unknown fields are rejected", () => {
     expect(codes({ ...example(), layout: {} })).toContain("breadboard.schema");
     expect(breadboardJSONSchema).toHaveProperty("properties.parts");

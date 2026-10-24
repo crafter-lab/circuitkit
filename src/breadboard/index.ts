@@ -84,8 +84,14 @@ export const breadboardSchema = z.strictObject({
         .enum(["full", "split"])
         .default("full")
         .describe("split: each rail is cut in half at the middle row."),
+      railOrder: z
+        .enum(["repeated", "mirrored"])
+        .default("repeated")
+        .describe(
+          "Rail order from left to right as printed on the board. repeated: - + | - +. mirrored: - + | + -.",
+        ),
     })
-    .default({ rows: breadboardLimits.rows, rails: "full" }),
+    .default({ rows: breadboardLimits.rows, rails: "full", railOrder: "repeated" }),
   parts: z.array(partSchema).max(breadboardLimits.parts),
   wires: z.array(wireSchema).max(breadboardLimits.wires),
   expect: z
@@ -393,16 +399,16 @@ const autoColors = ["blue", "green", "orange", "purple", "yellow", "brown", "gra
 const P = 18;
 const top = 70;
 const left = 210;
-// x positions in pitch units: L- L+ | a..e | gap | f..j | R+ R-
+// x positions in pitch units: L- L+ | a..e | gap | f..j | right rails
 const columnX = (column: number) => left + (column + (column >= 5 ? 4.5 : 2)) * P;
-const railX: Record<Rail, number> = {
+const railsFor = (order: "repeated" | "mirrored"): Record<Rail, number> => ({
   "L-": left,
   "L+": left + P,
-  "R+": left + 15.5 * P,
-  "R-": left + 16.5 * P,
-};
+  "R-": left + (order === "repeated" ? 15.5 : 16.5) * P,
+  "R+": left + (order === "repeated" ? 16.5 : 15.5) * P,
+});
 const rowY = (row: number) => top + (row - 1) * P;
-const pointXY = (point: string) =>
+const pointXY = (point: string, railX: Record<Rail, number>) =>
   isRail(point)
     ? { x: railX[point.slice(0, 2) as Rail], y: rowY(Number(point.slice(2))) }
     : (() => {
@@ -428,7 +434,9 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
   const document = compiled.document;
   const { rows } = document.board;
   const { placed, nets } = analyze(document);
-  const boardRight = railX["R-"] + P * 2.2;
+  const railX = railsFor(document.board.railOrder);
+  const outerRight = Math.max(railX["R-"], railX["R+"]);
+  const boardRight = outerRight + P * 2.2;
   const legendX = boardRight + 40;
   const out: string[] = [];
   const height = Math.max(rowY(rows) + 60, 120 + document.wires.length * 22 + 200);
@@ -444,7 +452,8 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
   );
   for (const rail of rails) {
     const color = rail.endsWith("+") ? palette.plus : palette.minus;
-    const offset = rail.startsWith("L") === rail.endsWith("-") ? -P / 2 : P / 2;
+    const outer = railX[rail] === railX["L-"] || railX[rail] === outerRight;
+    const offset = (rail.startsWith("L") ? -1 : 1) * (outer ? P / 2 : -P / 2);
     out.push(
       `<line x1="${railX[rail] + offset}" y1="${top - P}" x2="${railX[rail] + offset}" y2="${rowY(rows) + P / 2}" stroke="${color}" stroke-width="1.5" opacity="0.6"/>`,
     );
@@ -471,7 +480,7 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
     const y = rowY(row);
     if (row === 1 || row % 5 === 0) {
       out.push(text(String(row), 10, railX["L-"] - P * 1.1, y + 3.5, palette.muted, "right"));
-      out.push(text(String(row), 10, railX["R-"] + P * 1.1, y + 3.5, palette.muted, "left"));
+      out.push(text(String(row), 10, outerRight + P * 1.1, y + 3.5, palette.muted, "left"));
     }
     for (const side of ["L", "R"] as const)
       if (usedStrips.has(`${row}${side}`)) {
@@ -572,8 +581,8 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
   };
   let auto = 0;
   document.wires.forEach((wire, index) => {
-    const a = pointXY(wire.from);
-    const b = pointXY(wire.to);
+    const a = pointXY(wire.from, railX);
+    const b = pointXY(wire.to, railX);
     const ends = [occupantOf(wire.from), occupantOf(wire.to)];
     const power = ends.some((end) => /^R\+|^L\+/.test(end));
     const ground = ends.some((end) => /^R-|^L-/.test(end));

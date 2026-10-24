@@ -2,6 +2,11 @@
   "schema": "circuitkit.breadboard.v1",
   "id": "pico-ili9341",
   "title": "Pico 2 W + 2.4in ILI9341 (SPI0)",
+  "board": {
+    "rows": 63,
+    "rails": "full",
+    "railOrder": "repeated"
+  },
   "parts": [
     {
       "id": "pico",
@@ -82,16 +87,51 @@
     }
   ],
   "wires": [
-    { "from": "i26", "to": "R-26" },
-    { "from": "i28", "to": "R+28" },
-    { "from": "i37", "to": "e58", "color": "purple" },
-    { "from": "i38", "to": "e57", "color": "orange" },
-    { "from": "i39", "to": "e56", "color": "blue" },
-    { "from": "i40", "to": "e55", "color": "green" },
-    { "from": "i42", "to": "e59", "color": "yellow" },
-    { "from": "e61", "to": "R+61" },
-    { "from": "e54", "to": "R+54" },
-    { "from": "e60", "to": "R-60" }
+    {
+      "from": "i26",
+      "to": "R-26"
+    },
+    {
+      "from": "i28",
+      "to": "R+28"
+    },
+    {
+      "from": "i37",
+      "to": "e58",
+      "color": "purple"
+    },
+    {
+      "from": "i38",
+      "to": "e57",
+      "color": "orange"
+    },
+    {
+      "from": "i39",
+      "to": "e56",
+      "color": "blue"
+    },
+    {
+      "from": "i40",
+      "to": "e55",
+      "color": "green"
+    },
+    {
+      "from": "i42",
+      "to": "e59",
+      "color": "yellow"
+    },
+    {
+      "from": "e61",
+      "to": "R+61"
+    },
+    {
+      "from": "e54",
+      "to": "R+54"
+    },
+    {
+      "from": "e60",
+      "to": "R-60"
+    }
   ],
   "expect": [
     ["pico.GND", "tft.GND"],
