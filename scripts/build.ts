@@ -42,7 +42,15 @@ if (import.meta.main) {
   }
   mkdirSync("dist", { recursive: true });
   const cliSubpaths: Record<string, string[]> = {
-    cli: ["index", "png", "markdown", "diagram/index", "language/index", "v2/png"],
+    cli: [
+      "index",
+      "png",
+      "markdown",
+      "diagram/index",
+      "language/index",
+      "v2/png",
+      "breadboard/png",
+    ],
     "education-cli": ["v2/index", "v2/schema", "v2/png"],
   };
   for (const entry of [
@@ -52,6 +60,8 @@ if (import.meta.main) {
     "markdown",
     "share",
     "diagram/index",
+    "breadboard/index",
+    "breadboard/png",
     "language/index",
     "cli",
     "v2/index",
@@ -64,7 +74,7 @@ if (import.meta.main) {
   ]) {
     const subpaths = cliSubpaths[entry];
     const isReact = entry === "react" || entry === "v2/react";
-    const isPNG = entry === "png" || entry === "v2/png";
+    const isPNG = entry === "png" || entry === "v2/png" || entry === "breadboard/png";
     const result = await Bun.build({
       entrypoints: [`src/${entry}.${isReact ? "tsx" : "ts"}`],
       outdir: join("dist", dirname(entry)),

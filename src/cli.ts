@@ -15,6 +15,12 @@ import { basename, dirname, join, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { agentGuides, packageVersion, readAgentGuide } from "./agent-guides.ts";
 import {
+  breadboardJSONSchema,
+  compileBreadboard,
+  isBreadboardDocument,
+  renderBreadboardSVG,
+} from "./breadboard/index.ts";
+import {
   compileDiagram,
   type DiagramView,
   diagramJSONSchema,
@@ -68,6 +74,7 @@ Flags:
   --scale N    Integer 1 through 4; PNG only; default 1; 16,000,000 pixel cap
   --block N    Select a 1-based Markdown figure for validate/inspect/render
   --diagram    Discover circuitkit.diagram.v1 instead of legacy v1; schema only
+  --breadboard Discover circuitkit.breadboard.v1 (holes, parts, wires); schema only
   --view V     blocks, wiring or schematic; diagram input only; keeps authored JSON
                validate/inspect/render/markdown; defaults to authored view or wiring
   --scope P    Select an assembly path in circuit source; default root
@@ -81,6 +88,7 @@ Input '-' reads stdin, never prompts. Omit --out to return SVG without writing.
 JSON and circuit ID v1 source are recognized by content; --block explicitly selects Markdown after all blocks validate.
 Use schema --diagram --json for coordinate-free modules and module.port connections.
 Raw circuitkit.diagram.v1 documents and legacy v1 are accepted, never author envelopes.
+circuitkit.breadboard.v1 places parts on holes and derives nets from strips, rails and wires.
 Diagram views declare connectivity, not electrical verification; --figure/--schematic are legacy only.
 Limits: JSON 64 KiB and 64 nesting levels; Markdown 1 MiB, 32 blocks.
 Exits: 0 success; 1 invalid input/document; 2 usage or IO failure.
@@ -367,6 +375,7 @@ async function main(): Promise<void> {
           scale: { type: "string" },
           block: { type: "string" },
           diagram: { type: "boolean" },
+          breadboard: { type: "boolean" },
           view: { type: "string" },
           scope: { type: "string" },
           detail: { type: "string" },
@@ -483,6 +492,8 @@ async function main(): Promise<void> {
       return;
     }
     if (flags.diagram && command !== "schema") usage("--diagram applies only to schema.");
+    if (flags.breadboard && command !== "schema") usage("--breadboard applies only to schema.");
+    if (flags.breadboard && flags.diagram) usage("--breadboard and --diagram are exclusive.");
     let view: DiagramView | undefined;
     if (flags.view !== undefined) {
       if (!["validate", "inspect", "render", "markdown"].includes(command))
@@ -559,7 +570,13 @@ async function main(): Promise<void> {
       if (parsed.positionals.length !== 1) usage(`${command} takes no document argument.`);
       const data =
         command === "schema"
-          ? { schema: flags.diagram ? diagramJSONSchema : getSchema() }
+          ? {
+              schema: flags.breadboard
+                ? breadboardJSONSchema
+                : flags.diagram
+                  ? diagramJSONSchema
+                  : getSchema(),
+            }
           : { catalog: getCatalog() };
       emit(
         {
@@ -567,14 +584,19 @@ async function main(): Promise<void> {
           version: 1,
           ...data,
           diagnostics: [],
-          nextSteps: flags.diagram
+          nextSteps: flags.breadboard
             ? [
-                "Create raw circuitkit.diagram.v1 JSON with modules and connections, without coordinates or an author envelope.",
-                "Run validate <file> and render <file> --view wiring; use blocks or schematic for another view without changing authored JSON.",
+                "Create circuitkit.breadboard.v1 JSON: parts on holes (dip or header), wires between holes or rails, and optional expect pairs.",
+                "Run validate <file> to check opens and shorts, then render <file> --out board.svg.",
               ]
-            : [
-                "Create a document using the schema and catalog, then run validate with its file path.",
-              ],
+            : flags.diagram
+              ? [
+                  "Create raw circuitkit.diagram.v1 JSON with modules and connections, without coordinates or an author envelope.",
+                  "Run validate <file> and render <file> --view wiring; use blocks or schematic for another view without changing authored JSON.",
+                ]
+              : [
+                  "Create a document using the schema and catalog, then run validate with its file path.",
+                ],
         },
         machine,
         command,
@@ -692,6 +714,66 @@ async function main(): Promise<void> {
       location = { index: selected.index, line: selected.line, column: selected.column };
     } else if (isCircuitSource(text)) sourceText = text;
     else document = readDocument(text);
+    if (isBreadboardDocument(document)) {
+      if (view !== undefined || flags.figure || flags.schematic)
+        usage("--view, --figure and --schematic do not apply to breadboard documents.");
+      const scale = Number(flags.scale ?? 1);
+      const board =
+        command === "render"
+          ? format === "png"
+            ? await (await import("./breadboard/png.ts")).renderBreadboardPNG(document, scale)
+            : renderBreadboardSVG(document)
+          : compileBreadboard(document);
+      if (!board.ok) {
+        emit(
+          {
+            ...board,
+            nextSteps: [
+              "Fix the holes, pins or wires named in diagnostics, then run validate again.",
+              "circuitkit schema --breadboard --json",
+            ],
+          },
+          machine,
+          command,
+        );
+        process.exitCode = board.diagnostics.some(({ code }) => code === "png.render_failed")
+          ? 2
+          : 1;
+        return;
+      }
+      let output: string | undefined;
+      const { png, svg } = board as { png?: Uint8Array; svg?: string };
+      const receipt: { ok: true; diagnostics: Diagnostic[]; [key: string]: unknown } = { ...board };
+      if (command === "render" && typeof flags.out === "string") {
+        output = resolve(flags.out);
+        const artifact = png ?? svg;
+        if (artifact === undefined)
+          throw new CliError(
+            "io.write_failed",
+            "/out",
+            "The renderer did not return an output artifact.",
+          );
+        atomicWrite(output, artifact, flags.overwrite === true);
+      }
+      if (png) {
+        delete receipt.png;
+        receipt.bytes = png.byteLength;
+      }
+      emit(
+        {
+          ...receipt,
+          ...(output ? { output } : {}),
+          nextSteps: [
+            command === "render"
+              ? "Look at the rendered board; derived nets are not electrical verification."
+              : "Render to a new --out path and compare it with the physical board.",
+          ],
+        },
+        machine,
+        command,
+      );
+      return;
+    }
     const diagram =
       sourceText !== undefined ||
       (document !== null &&

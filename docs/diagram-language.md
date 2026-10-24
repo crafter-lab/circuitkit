@@ -102,7 +102,7 @@ Graph ranks, measured labels, aligned pin lanes and bounded orthogonal routing d
 
 All views derive identical nets from the same connection graph. Generated `N1`, `N2`, etc. are local display names, not stable references; target IDs are derived from semantic identities and are stable across view/theme/input ordering. No component internals, physical positions, protocol correctness, pull-ups, supply regulation or operation are invented. This is not an automatic full-chip schematic, PCB layout, simulation, or hardware certification.
 
-The approved Cueva illustrations are acceptance references for the visual grammar, not a source of fixed coordinates or a hidden template. The compiler must keep their single-module connected composition rather than merely conserve connectivity in a different presentation. Exact positions can differ as labels and data change. This compiler has no module-name-specific branches. Physical/breadboard placement is outside this language version; existing educational APIs remain available separately.
+The approved Cueva illustrations are acceptance references for the visual grammar, not a source of fixed coordinates or a hidden template. The compiler must keep their single-module connected composition rather than merely conserve connectivity in a different presentation. Exact positions can differ as labels and data change. This compiler has no module-name-specific branches. Physical breadboard placement is outside this language; use `circuitkit.breadboard.v1` ([breadboard guide](breadboard.md)). Existing educational APIs remain available separately.
 
 ## Limits
 

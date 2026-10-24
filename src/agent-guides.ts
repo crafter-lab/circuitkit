@@ -21,6 +21,11 @@ export const agentGuides = [
     file: "docs/presentation.md",
   },
   {
+    name: "breadboard",
+    description: "Parts and jumper wires placed on breadboard holes",
+    file: "docs/breadboard.md",
+  },
+  {
     name: "education",
     description: "Educational authoring and public projection",
     file: "docs/education-authoring.md",
