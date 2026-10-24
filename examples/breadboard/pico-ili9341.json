@@ -6,7 +6,8 @@
     "rows": 63,
     "rails": "full",
     "railOrder": "repeated",
-    "railHoles": "grouped"
+    "railHoles": "grouped",
+    "railStart": 3
   },
   "parts": [
     {
@@ -90,7 +91,7 @@
   "wires": [
     {
       "from": "i26",
-      "to": "R-26"
+      "to": "R-27"
     },
     {
       "from": "i28",

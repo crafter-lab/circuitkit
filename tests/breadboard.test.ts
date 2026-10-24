@@ -82,9 +82,11 @@ describe("breadboard documents", () => {
 
   test("grouped rails reject the empty row between groups", () => {
     const document = example();
-    document.wires[0] = { from: "i26", to: "R-24" };
+    document.wires[0] = { from: "i26", to: "R-26" };
     expect(codes(document)).toEqual(["breadboard.rail_gap"]);
-    document.board = { railHoles: "every-row" };
+    document.wires[0] = { from: "i26", to: "R-1" };
+    expect(codes(document)).toEqual(["breadboard.rail_gap"]);
+    document.board = { railHoles: "every-row", railStart: 1 };
     expect(codes(document)).toEqual([]);
   });
 
