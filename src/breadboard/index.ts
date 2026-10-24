@@ -90,8 +90,19 @@ export const breadboardSchema = z.strictObject({
         .describe(
           "Rail order from left to right as printed on the board. repeated: - + | - +. mirrored: - + | + -.",
         ),
+      railHoles: z
+        .enum(["grouped", "every-row"])
+        .default("grouped")
+        .describe(
+          "grouped: rail holes come in groups of five with an empty row between groups (rows 6, 12, 18...).",
+        ),
     })
-    .default({ rows: breadboardLimits.rows, rails: "full", railOrder: "repeated" }),
+    .default({
+      rows: breadboardLimits.rows,
+      rails: "full",
+      railOrder: "repeated",
+      railHoles: "grouped",
+    }),
   parts: z.array(partSchema).max(breadboardLimits.parts),
   wires: z.array(wireSchema).max(breadboardLimits.wires),
   expect: z
@@ -132,6 +143,8 @@ const parseHole = (value: string) => ({
   row: Number(value.slice(1)),
 });
 const isRail = (value: string) => value[0] === "L" || value[0] === "R";
+const railGap = (row: number, holes: "grouped" | "every-row") =>
+  holes === "grouped" && row % 6 === 0;
 
 function placePins(part: Part, rows: number, path: string, issues: Diagnostic[]): Placed[] {
   const add = (code: string, message: string) => issues.push({ code, path, message });
@@ -240,6 +253,12 @@ function analyze(document: Document) {
           code: "breadboard.out_of_board",
           path,
           message: `Row ${row} is past the last row ${rows}.`,
+        });
+      else if (isRail(point) && railGap(row, document.board.railHoles))
+        issues.push({
+          code: "breadboard.rail_gap",
+          path,
+          message: `Row ${row} is the gap between rail groups; use ${point.slice(0, 2)}${row - 1} or ${point.slice(0, 2)}${row + 1}.`,
         });
       const owner = occupied.get(point);
       if (owner)
@@ -494,9 +513,10 @@ export function renderBreadboardSVG(input: unknown): RenderedBreadboard | Failur
         `<rect x="${columnX(column) - 3}" y="${y - 3}" width="6" height="6" rx="1" fill="${palette.hole}"/>`,
       );
     for (const rail of rails)
-      out.push(
-        `<rect x="${railX[rail] - 3}" y="${y - 3}" width="6" height="6" rx="1" fill="${palette.hole}"/>`,
-      );
+      if (!railGap(row, document.board.railHoles))
+        out.push(
+          `<rect x="${railX[rail] - 3}" y="${y - 3}" width="6" height="6" rx="1" fill="${palette.hole}"/>`,
+        );
   }
 
   for (const part of document.parts) {

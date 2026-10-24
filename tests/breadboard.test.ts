@@ -80,6 +80,14 @@ describe("breadboard documents", () => {
     expect(b.nets).toEqual(a.nets);
   });
 
+  test("grouped rails reject the empty row between groups", () => {
+    const document = example();
+    document.wires[0] = { from: "i26", to: "R-24" };
+    expect(codes(document)).toEqual(["breadboard.rail_gap"]);
+    document.board = { railHoles: "every-row" };
+    expect(codes(document)).toEqual([]);
+  });
+
   test("unknown fields are rejected", () => {
     expect(codes({ ...example(), layout: {} })).toContain("breadboard.schema");
     expect(breadboardJSONSchema).toHaveProperty("properties.parts");

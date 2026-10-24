@@ -5,7 +5,8 @@
   "board": {
     "rows": 63,
     "rails": "full",
-    "railOrder": "repeated"
+    "railOrder": "repeated",
+    "railHoles": "grouped"
   },
   "parts": [
     {
@@ -126,11 +127,11 @@
     },
     {
       "from": "e54",
-      "to": "R+54"
+      "to": "R+53"
     },
     {
       "from": "e60",
-      "to": "R-60"
+      "to": "R-59"
     }
   ],
   "expect": [
